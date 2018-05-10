@@ -68,6 +68,10 @@ class Program:
             "projects": []
         }
 
+        # Call structures
+        self._on_remote_program_call_structures = []
+        self._on_project_call_structures = []
+
         # Http server
         # self.settings["servers"]["http"] = kwargs.get('http',{
         #     "initiate": True,
@@ -251,12 +255,26 @@ class Program:
     def is_me(self, remote_program):
         return self._id == remote_program._id
 
-    def on_remote_program(self, remote_program):
-        pass
-        # raise RuntimeWarning('on_remote_program is not defined')
+    def _on_remote_program(self, remote_program):
+        for call_structure in self._on_remote_program_call_structures:
+            call_structure['call'](remote_program)
 
-    def on_project(self, project):
-        pass
+    def on_remote_program(self, call):
+        call_structure = {
+            "call": call
+        }
+        self._on_remote_program_call_structures.append(call_structure)
+
+    def _on_project(self, project):
+        for call_structure in self._on_project_call_structures:
+            call_structure['call'](project)
+
+    def on_project(self, call):
+        call_structure = {
+            "call": call
+        }
+        self._on_project_call_structures.append(call_structure)
+
         # raise RuntimeWarning('on_project is not defined')
         # 
     def on_message(self, message):
@@ -307,7 +325,7 @@ class Program:
             raise ValueError(error)
         # Add project to projects list
         self.projects.append(project)
-        self.on_project(project)
+        self._on_project(project)
 
     def has_project(self, project):
         for iproject in self.projects:
@@ -625,6 +643,6 @@ class Program:
         # Add remote program to remote programs list
         self.remote_programs.append(remote_program)
         # Inform user
-        self.on_remote_program(remote_program)
+        self._on_remote_program(remote_program)
         # Return true
         return True

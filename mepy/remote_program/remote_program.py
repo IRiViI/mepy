@@ -193,18 +193,18 @@ class RemoteProgram(MeClass):
         if not hasattr(self, '_on_ping_call_structures'):
             self._on_ping_call_structures = []
         for call_structure in self._on_ping_call_structures:
-            call, thresshold = call_structure
-            if ping > thresshold:
+            call, threshold = call_structure
+            if ping > threshold:
                 call(connection, ping)
 
     """Add calls to on ping list
     
     [description]
     """
-    def on_ping(self, call, thresshold=0):
+    def on_ping(self, call, threshold=0):
         if not hasattr(self, '_on_ping_call_structures'):
             self._on_ping_call_structures = []
-        self._on_ping_call_structures.append([call, thresshold])
+        self._on_ping_call_structures.append([call, threshold])
 
     def add_connection(self, connection):
         connection.on_ping(lambda ping: self._on_ping(ping, connection=connection))

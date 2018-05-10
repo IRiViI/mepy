@@ -36,6 +36,8 @@ class Project(MeClass):
             }
         }
 
+        self._on_remote_program_call_structures = []
+
         self.combine(**kwargs)
 
     def combine(self, *args, **kwargs):
@@ -60,14 +62,32 @@ class Project(MeClass):
     def on_message(self, message):
         pass
 
-    def on_remote_program(self, remote_program):
-        pass
+    def _on_remote_program(self, remote_program, **kwargs):
+        connect = kwargs.get('connect', False)
+        update = kwargs.get('update', False)
+        for call_structure in self._on_remote_program_call_structures:
+            if call_structure['connect'] is False and connect is True:
+                continue
+            if call_structure['update'] is False and update is True:
+                continue
+            call_structure['call'](remote_program)
 
-    def on(self, key, call):
-        if (key == 'remote_program'):
-            self.on_remote_program = call
-        else:
-            ValueError("On call named '" + key + "' is not allowed")
+    def on_remote_program(self, call, **kwargs):
+        connect = kwargs.get('connect', True)
+        update = kwargs.get('update', True)
+        call_structure = {
+            "call": call,
+            "update": update,
+            "connect": connect
+        }
+        self._on_remote_program_call_structures.append(call_structure)
+
+
+    # def on(self, key, call):
+    #     if (key == 'remote_program'):
+    #         self.on_remote_program = call
+    #     else:
+    #         ValueError("On call named '" + key + "' is not allowed")
 
     def _process_connection_request(self, connection_request):
         # programs involved in the new connection
@@ -79,7 +99,7 @@ class Project(MeClass):
             lambda remote_program: remote_program._id != self.program._id, remote_programs))
         # Add remote program if it's a new one
         for remote_program in remote_programs:
-            self.add_remote_program(remote_program)
+            self.add_remote_program(remote_program, connect=True)
         # Add hub connection
         hub_connection_added = False
         for connection in self.connections:
@@ -217,7 +237,7 @@ class Project(MeClass):
             remote_programs))
         # Add remote programs to project
         for remote_program in new_remote_programs:
-            self.add_remote_program(remote_program)
+            self.add_remote_program(remote_program, update=True)
 
     def joining(self):
         # receiver for identification token
@@ -307,7 +327,9 @@ class Project(MeClass):
             remote_programs.append(remote_program)
         return remote_programs
 
-    def add_remote_program(self, remote_program):
+    def add_remote_program(self, remote_program, **kwargs):
+        connect = kwargs.get('connect', False)
+        update = kwargs.get('update', False)
        # Check if remote_program is an instance of RemoteProgram class
         if not isinstance(remote_program, RemoteProgram):
             raise TypeError('remote_program is not an instance of RemoteProgram')
@@ -316,7 +338,9 @@ class Project(MeClass):
             return False
         # Add remote program to remote programs list
         self.remote_programs.append(remote_program)
-        self.on_remote_program(remote_program)
+        self._on_remote_program(remote_program,
+            connect=connect,
+            update=update)
         # Return true
         return True
 
