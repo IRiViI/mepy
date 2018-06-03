@@ -7,8 +7,8 @@ import mepy
 import time
 
 # Program settings
-_id = '5afbfa9c1a50647f3b9c2777'
-key = 'z8PNWgCTkgHubTd'
+_id = '5b03e31a308fcd25b86e6a7e'
+key = '3FH6bL86cI4z0gp'
 
 
 def belongs_to_remote_programs_group_1(remote_program):
@@ -51,8 +51,8 @@ def process_remote_programs_group_1(remote_program):
     """
 
     # Add incomming messages handlers
+    remote_program.on_send('test', process_send_test_message)
     remote_program.on_send('event', process_send_event_message)
-    remote_program.on_send('throttle', process_send_throttle_message)
 
     # Set ping interval
     remote_program.set_ping_interval(1)
@@ -105,15 +105,15 @@ def process_remote_program(remote_program):
         print('Who\'s that program?')
 
 
-def process_send_event_message(message):
-    """Handle a send eventmessage"""
+def process_send_test_message(message):
+    """Handle a send testmessage"""
 
     body = message.body
     print('message body:', body)
 
 
-def process_send_throttle_message(message):
-    """Handle a send throttlemessage"""
+def process_send_event_message(message):
+    """Handle a send eventmessage"""
 
     body = message.body
     print('message body:', body)

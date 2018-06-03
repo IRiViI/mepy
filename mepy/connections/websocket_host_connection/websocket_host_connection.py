@@ -17,7 +17,6 @@ class WebsocketHostConnection(BaseConnection):
 
     def __init__(self, ws, *args, **kwargs):
         super()
-
         self._messages = []
 
         self.ws = ws
@@ -27,7 +26,7 @@ class WebsocketHostConnection(BaseConnection):
         self.address = kwargs.get('address', '')
         self.port = kwargs.get('port', 443)
 
-        self.period = 0.01
+        self.period = 0.001
 
         self.running = False
         self.event_loop = asyncio.get_event_loop()
@@ -100,9 +99,10 @@ class WebsocketHostConnection(BaseConnection):
         # While the websocket is active
         while self.running:
             # Check if there is a new message
+            # print('messages:', len(self._messages))
+            # if len(self._messages) > 0:
+            #     message = self._messages[0]
             for message in self._messages:
-                # Remove message from send messages list
-                self._remove_message(message)
                 try:
                     json_object = message.toJSON()
                 except:
@@ -110,8 +110,40 @@ class WebsocketHostConnection(BaseConnection):
                     error = sys.exc_info()[0]
                     raise error
                 # Send message to the remote
-                self.ws.write_message(json_object)
+                try:
+                    self.ws.write_message(json_object)
+                    # Remove message from send messages list
+                    self._remove_message(message)
+                except:
+                    print('ERROR: Ow no... websocket_host_connection, _run')
             time.sleep(self.period)
+
+        # # While the websocket is active
+        # while self.running:
+        #     # Check if there is a new message
+        #     # print('messages:', len(self._messages))
+        #     # if len(self._messages) > 0:
+        #     #     message = self._messages[0]
+        #     if len(self._messages) > 0:
+        #         json_objects = []
+        #         for message in self._messages:
+        #             try:
+        #                 json_object = message.toJSON()
+        #                 json_objects.append(json_object)
+        #             except:
+        #                 print('Error, message could not be transformed to json')
+        #                 error = sys.exc_info()[0]
+        #                 raise error
+        #         # Send message to the remote
+        #         try:
+        #             self.ws.write_message(JSON.parse(json_objects))
+        #             # Remove message from send messages list
+        #             for message in self._messages:
+        #                 self._remove_message(message)
+        #         except:
+        #             print('ERROR: Ow no... websocket_host_connection, _run')
+        #     time.sleep(self.period)
+
 
     # def on_message(self, message):
     #     print(message)

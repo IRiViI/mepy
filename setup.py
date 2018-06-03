@@ -15,10 +15,10 @@ requirements = [
     'Click>=6.0',
     'netifaces',
     'asyncio',
-    'websocket',
     'tornado',
     'websocket-client'
 ]
+    # 'websocket',
 
 setup_requirements = [ ]
 
@@ -54,6 +54,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/IRiViI/mepy',
-    version='0.2.1',
+    version='0.2.5',
     zip_safe=False,
 )

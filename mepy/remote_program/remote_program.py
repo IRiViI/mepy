@@ -90,7 +90,7 @@ class RemoteProgram(MeClass):
             lambda message: print('Unprocessed send message'))
 
         def on_unprocessed_message(message):
-            print('Unprocessed get message')
+            print('Unprocessed {} message'.format(message.method))
             raise RuntimeError('Unkown method or endpoint')
 
         self.on_get('*', on_unprocessed_message)
@@ -166,12 +166,14 @@ class RemoteProgram(MeClass):
         if (self.information["connectivity"]["ws"] and 
             self.information["connectivity"]["ws"]["host"]):
             connection_added = False
-            for network_key in self.program.information["network"]:
+            for network_key in self.information["network"]:
                 # Stop if a connection has been added
                 if connection_added:
                     return 
                 # Get network
-                network = self.program.information["network"][network_key]
+                network = self.information["network"][network_key]
+                if network["address"] == '127.0.0.1':
+                    continue
                 # Try to connect
                 try:
                     websocket_client_connection = WebsocketClientConnection(
@@ -224,6 +226,22 @@ class RemoteProgram(MeClass):
         # Continue as normal
         return super().add_connection(connection)
 
+
+    def reset_pinging(self):
+        # If the ping interval is on
+        if self.ping_interval > 0:
+            # Try to close the pinging of the current hightest connection
+            for connection in self.connections:
+                try:
+                    connection.stop_pinging()
+                except:
+                    print('pinging stopping failed for connection',connection)
+            # Start pinging at the new connection
+            self.connections[0].ping_interval = self.ping_interval
+            try:
+                self.connections[0].start_pinging()
+            except:
+                pass
 
 
     def redirect_message(self, message):
@@ -319,6 +337,10 @@ class RemoteProgram(MeClass):
             "wait": False,
             "callback": True,
         }
+
+    def set_ping_interval(self, ping_interval):
+        self.ping_interval = ping_interval
+        self.reset_pinging()
 
     def process_message(self, message):
         self.on_message(message)

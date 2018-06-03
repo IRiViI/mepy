@@ -29,7 +29,6 @@ class WebsocketClientConnection(BaseConnection):
         self.combine(**kwargs)
 
     def combine(self, *args, **kwargs):
-
         self.remote = kwargs.get('remote', None)
         self.secure = kwargs.get('secure', True)
         self.address = kwargs.get('address', '')
@@ -161,6 +160,8 @@ class WebsocketClientConnection(BaseConnection):
         self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
     def _process_message(self, ws, string_message):
+        if not self.remote:
+            print('NO REMOTE SET')
         def _convert_message(string_message):
             json_message = json.loads(string_message)
             message =  Message(**json_message)
@@ -177,8 +178,37 @@ class WebsocketClientConnection(BaseConnection):
         #             sender={"type":"program","_id":self.remote.program._id})
         #         self.channel(pongMessage)
         # else :
+        
         self.remote.redirect_message(message)
         
+    # def _process_message(self, ws, string_message):
+    #     def _convert_message(string_message):
+    #         if type(string_message) is list:
+    #             messages = []
+    #             for i_string_message in string_message:
+    #                 json_message = json.loads(i_string_message)
+    #                 message =  Message(**json_message)
+    #                 message.connection = self
+    #                 messages.append(message)
+    #             return messages
+    #         else:
+    #             json_message = json.loads(string_message)
+    #             message =  Message(**json_message)
+    #             message.connection = self
+    #             return [message]
+    #     messages = _convert_message(string_message)
+
+    #     # if message.sender["type"] == "connection":
+    #     #     if (message.endpoint=="ping"):
+    #     #         pongMessage = Message(
+    #     #             body=time.time(),
+    #     #             method="respond",
+    #     #             receiver={"type":"connection"},
+    #     #             sender={"type":"program","_id":self.remote.program._id})
+    #     #         self.channel(pongMessage)
+    #     # else :
+    #     for message in messages:
+    #         self.remote.redirect_message(message)
         # try:
         # except:
         #     error = sys.exc_info()[0]
@@ -221,37 +251,51 @@ class WebsocketClientConnection(BaseConnection):
             print('Error, message could not be transformed to json')
             error = sys.exc_info()[0]
             raise error
-        string_body = json.dumps(message.body)
-        length_body = len(string_body)
-        chunk_size = 256 * 1024 - 1000
-        chunksTotal = math.ceil(length_body/chunk_size)
-        if chunksTotal > 1:
-            message.encoding = 'string'
-            message.body = None
-            message.chunksTotal = chunksTotal
-            chunk_number = 0
-            for i in range(0, length_body, chunk_size):
-                chunk_message = message.copy()
-                chunk_message.chunk = string_body[i:i + chunk_size]
-                print(len(chunk_message.chunk))
-                chunk_message.chunkNumber = chunk_number
-                json_object = chunk_message.toJSON()
-                self.ws.send(json_object)
-                chunk_number += 1
-            # self.respond(message._id, None, bytes(json_object[i:i + chunk_size]), chunk_number, chunks)
-            # self.write(bytes(data[i:i + chunk_size]))
-            # await self.flush()
-            # 
-            # 
-            # 
-            # 
-            # 
-        else:
+        # string_body = json.dumps(message.body)
+        # length_body = len(string_body)
+        # chunk_size = 256 * 1024 - 1000
+        # chunksTotal = math.ceil(length_body/chunk_size)
+        # if chunksTotal > 1:
+        #     message.encoding = 'string'
+        #     message.body = None
+        #     message.chunksTotal = chunksTotal
+        #     chunk_number = 0
+        #     for i in range(0, length_body, chunk_size):
+        #         chunk_message = message.copy()
+        #         chunk_message.chunk = string_body[i:i + chunk_size]
+
+        #         chunk_message.chunkNumber = chunk_number
+        #         json_object = chunk_message.toJSON()
+        #         self.ws.send(json_object)
+        #         chunk_number += 1
+        #     # self.respond(message._id, None, bytes(json_object[i:i + chunk_size]), chunk_number, chunks)
+        #     # self.write(bytes(data[i:i + chunk_size]))
+        #     # await self.flush()
+        #     # 
+        #     # 
+        #     # 
+        #     # 
+        #     # 
+        # else:
+        # print(self.secure)
+        # print(self.address)
+        # print(self.port)
+        # print(json_object)
+        try:
+            self.ws.send(json_object)
+        except Exception as error: 
+            print('waaaaaait a minute.... or second at least')
+            time.sleep(1)
             try:
                 self.ws.send(json_object)
-            except:
-                time.sleep(0.1)
-                self.ws.send(json_object)
+            except Exception as error: 
+                print('not send', json_object)
+                print(error)
+                print(self.secure)
+                print(self.address)
+                print(self.port)
+            # time.sleep(0.1)
+            # self.ws.send(json_object)
             # except:
             #     logging.warning('websocket_client_connection(channel), could not send message "{}" '.format(json_object))
 

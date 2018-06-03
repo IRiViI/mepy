@@ -5,10 +5,12 @@ import sys
 sys.path.insert(0, "../..")
 import mepy
 import time
+import math
+
 
 # Program settings
-_id = '5afbfa9c1a50647f3b9c2777'
-key = 'z8PNWgCTkgHubTd'
+_id = '5afaaee31a50647f3b9c26c9'
+key = 'sUFeQV8GjKlhPOn'
 
 
 def belongs_to_remote_programs_group_1(remote_program):
@@ -38,6 +40,29 @@ def belongs_to_remote_programs_group_1(remote_program):
     # One of us, one of us, one of us
     return True
 
+def belongs_to_remote_programs_group_3(remote_program):
+    """Check if a remote_program matches the description of remote_programs_group_1
+
+    Check the properties belong to the remote program remote_programs_group_1
+
+    Arguments:
+        remote_program {RemoteProgram} -- The program to be checked
+
+    Returns:
+        bool -- Return True if remote_program properties matches with the
+                description, else False.
+    """
+
+    # Filters
+
+    # Check for desired tags
+    for tag in ['bucket']:
+        if tag not in remote_program.tags:
+            return False
+
+    # One of us, one of us, one of us
+    return True
+
 
 def process_remote_programs_group_1(remote_program):
     """Process incomming remote programs belonging to  remote_programs_group_1
@@ -51,8 +76,10 @@ def process_remote_programs_group_1(remote_program):
     """
 
     # Add incomming messages handlers
+    remote_program.on_send('move', process_send_move_message)
     remote_program.on_send('event', process_send_event_message)
-    remote_program.on_send('throttle', process_send_throttle_message)
+    remote_program.on_send('servo', process_send_servo_message)
+
 
     # Set ping interval
     remote_program.set_ping_interval(1)
@@ -81,10 +108,13 @@ def process_project(project):
 
     def process_project_remote_program(remote_program):
         """ Handle programs of the project """
-
+        print(remote_program.tags)
         if belongs_to_remote_programs_group_1(remote_program):
             # Process remote_programs_group_1 remote program material
             pass
+        if belongs_to_remote_programs_group_3(remote_program):
+            # Process remote_programs_group_1 remote program material
+            remote_program.connect()
         else:
             print('Who\'s that program?')
 
@@ -94,15 +124,32 @@ def process_project(project):
                               connect=False)
 
 
+servo_bucket_remote_programs = []
 def process_remote_program(remote_program):
     """ Handle programs of the project """
-
+    print(remote_program.name)
     if belongs_to_remote_programs_group_1(remote_program):
         # Process remote_programs_group_1 remote program material
         # Connect with program
         process_remote_programs_group_1(remote_program)
+    if belongs_to_remote_programs_group_3(remote_program):
+        # Process remote_programs_group_1 remote program material
+        # Connect with program
+        servo_bucket_remote_programs.append(remote_program)
+        
+        def process_send_test_message(message):
+            """Handle a send movemessage"""
+            print(message.body)
+            remote_program.send('test','whaaaaaa')
+
+        remote_program.on_send('test', process_send_test_message)
     else:
         print('Who\'s that program?')
+
+
+def process_send_move_message(message):
+    """Handle a send movemessage"""
+    pass
 
 
 def process_send_event_message(message):
@@ -112,12 +159,12 @@ def process_send_event_message(message):
     print('message body:', body)
 
 
-def process_send_throttle_message(message):
-    """Handle a send throttlemessage"""
+def process_send_servo_message(message):
+    """Handle a send servomessage"""
+    pass
 
-    body = message.body
-    print('message body:', body)
 
+resetting = False
 
 def main():
 
@@ -132,15 +179,12 @@ def main():
     # Handle newly obtained projects
     program.on_project(process_project)
 
-    # Handle newly obtained projects
-    program.on_project(process_project)
-
     # Start program
     program.start()
 
     # Keep it on
     while True:
-        time.sleep(0.1)
+        time.sleep(1)
 
 
 if __name__ == '__main__':

@@ -18,10 +18,10 @@ class Message:
         self.method = kwargs.get('method', None)
         self.systemRequest = kwargs.get('system_request', False)
 
-        self.chunkNumber = kwargs.get('chunk_number', None)
-        self.chunksTotal = kwargs.get('chunks_total', None)
-        self.chunk = kwargs.get('chunk', None)
-        self.chunks = kwargs.get('chunks', None)
+        # self.chunkNumber = kwargs.get('chunk_number', None)
+        # self.chunksTotal = kwargs.get('chunks_total', None)
+        # self.chunk = kwargs.get('chunk', None)
+        # self.chunks = kwargs.get('chunks', None)
 
         self.auto_respond = False
         self.encoding = kwargs.get('encoding', None)

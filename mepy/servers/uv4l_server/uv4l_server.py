@@ -5,10 +5,10 @@ import asyncio
 import os
 import socket
 import websocket
-import machine_engine_python
+import mepy
 import logging
-from machine_engine_python.message import Message
-from machine_engine_python.servers.base_server import BaseServer
+from mepy.message import Message
+from mepy.servers.base_server import BaseServer
 
 class Uv4lServer(BaseServer):
 

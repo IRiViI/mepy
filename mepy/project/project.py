@@ -65,6 +65,7 @@ class Project(MeClass):
     def _on_remote_program(self, remote_program, **kwargs):
         connect = kwargs.get('connect', False)
         update = kwargs.get('update', False)
+        print(self._on_remote_program_call_structures)
         for call_structure in self._on_remote_program_call_structures:
             if call_structure['connect'] is False and connect is True:
                 continue
@@ -184,6 +185,7 @@ class Project(MeClass):
                 self.set_key(data_project["key"])
         except :
             pass
+        print(self.program.data)
         dbProject = self.program.database.get_project(self)
         if not dbProject: 
             raise RuntimeError("Project '" + (self.name or self._id) + "' could not be found")
@@ -211,7 +213,7 @@ class Project(MeClass):
         new_remote_programs = []
         removed_remote_programs = []
         # Status object
-        status = {"new": False, "Connect": False, "Update": True}
+        # status = {"new": False, "Connect": False, "Update": True}
         # Message
         # get_programs_message = Message(method="get",
         #                                endpoint="programs")
@@ -334,7 +336,7 @@ class Project(MeClass):
         if not isinstance(remote_program, RemoteProgram):
             raise TypeError('remote_program is not an instance of RemoteProgram')
         # Check if remote_program is already present in the remote_programs list
-        if self. get_remote_program_by_id(remote_program._id):
+        if self.get_remote_program_by_id(remote_program._id):
             return False
         # Add remote program to remote programs list
         self.remote_programs.append(remote_program)
@@ -401,7 +403,6 @@ class Project(MeClass):
             return self._process_response(message)
         if (message.endpoint == 'connectionRequest'):
             self._process_connection_request(message.body)
-            print('yaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaay')
             self.respond(message._id, None, {'message': 'succesful'})
             return
         print('A message from the project? that is weird')

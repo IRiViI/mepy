@@ -246,7 +246,9 @@ class Program:
         if ('servers' in kwargs):
             servers = kwargs.get('servers')
             if ('http' in servers):
-                self._process_http_server(servers['http'])
+                self.settings["servers"]['http'] = servers["http"]
+                # print('aaaaaaaaaaaa')
+                # self._process_http_server(servers['http'])
 
         # Set user
         if ('projects' in kwargs):
