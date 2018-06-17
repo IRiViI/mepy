@@ -192,7 +192,9 @@ def main():
 
     # Keep it on
     while True:
-        time.sleep(1)
+        time.sleep(4)
+        # print('information',program.information)
+        # print('data',program.data)
         for remote_program in servo_bucket_remote_programs:
             remote_program.send('test','boe')
 

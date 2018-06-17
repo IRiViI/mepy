@@ -9,6 +9,7 @@ import time
 from mepy.me_class import MeClass
 from mepy.message import Message
 from mepy.connections import WebsocketClientConnection
+from mepy.connections import BluetoothClientConnection
 
 import asyncio
 import mepy
@@ -43,6 +44,9 @@ class RemoteProgram(MeClass):
 
         self.calls = {}
 
+        self.connected = False
+        self.connecting_start_time = None
+
         def process_uv4l_server_system_call(message):
             if 'uv4l_server' in self.program.servers:
                 self.program.servers["uv4l_server"].process_remote_program_message(self, message)
@@ -52,6 +56,8 @@ class RemoteProgram(MeClass):
             message.connection.on_pong_message(message)
         def process_pang_message(message):
             message.connection.on_pang_message(message)
+        def process_bluetooth_server_freeport_call(message):
+            self.program.servers["bluetooth"].process_remote_program_message(self, message)
         self.system_calls = {
             "information": {
                 "get": {
@@ -63,6 +69,11 @@ class RemoteProgram(MeClass):
                     "call": process_uv4l_server_system_call
                 }
             },
+            # "/bluetoothServer/freeport":{
+            #     "send": {
+            #         "call": process_bluetooth_server_freeport_call
+            #     }
+            # },
             "ping":{
                 "send":{
                     "call": process_ping_message
@@ -128,7 +139,8 @@ class RemoteProgram(MeClass):
         query = message.query
         information  = {
             "network": self.program.information["network"],
-            "connectivity": self.program.get_connectivity_information()
+            "connectivity": self.program.get_connectivity_information(),
+            "mac":self.program.get_mac()
         }
         return information
 
@@ -142,6 +154,17 @@ class RemoteProgram(MeClass):
         #     raise ValueError("property '" + query['property'] + "' is not recognized")
 
     def connect(self):
+        if self.connected is True:
+            raise RuntimeWarning('already connected with program {}'.format(self.name))
+            
+        elif (self.connecting_start_time is None) is False:
+            if time.time() - self.connecting_start_time < 10:
+                raise RuntimeWarning('already connecting with program {}'.format(self.name))
+            else:
+                raise RuntimeWarning('with program {} failed'.format(self.name))
+
+        self.connecting_start_time = time.time()
+
         # Connection request body for project
         body = {
             "program": 
@@ -163,7 +186,7 @@ class RemoteProgram(MeClass):
 
     def update_connections(self):
         # Add ws connection
-        if (self.information["connectivity"]["ws"] and 
+        if (self.information["connectivity"]["ws"] and
             self.information["connectivity"]["ws"]["host"]):
             connection_added = False
             for network_key in self.information["network"]:
@@ -186,6 +209,18 @@ class RemoteProgram(MeClass):
                     connection_added = True
                 except:
                     pass
+        if ('bluetooth' in self.information["connectivity"] and 
+            'host' in self.information["connectivity"]["bluetooth"]):
+            try:
+                bluetooth_client_connection = BluetoothClientConnection(
+                    remote=self,
+                    mac=self.information["mac"]["address"],
+                    port=self.information["connectivity"]['bluetooth']['freeports'][0])
+                bluetooth_client_connection.connect()
+                self.add_connection(bluetooth_client_connection)
+            except:
+                pass
+
 
     def start_pinging(self):
         self.connections[0].ping_interval = self.ping_interval
@@ -334,8 +369,6 @@ class RemoteProgram(MeClass):
         # Add call
         self.calls[endpoint][method] = {
             "call": call,
-            "wait": False,
-            "callback": True,
         }
 
     def set_ping_interval(self, ping_interval):
@@ -369,28 +402,28 @@ class RemoteProgram(MeClass):
                 process = self.calls['*'][method]
         # Process get, post or send message
         if method == 'get' or method == 'post':
-            try: 
-                out = process["call"](message)
-                self.respond(message._id, None, out)
-                return
-            except Exception as error:
-                logging.warning('remote_program(process_message):' + str(error))
-                self.respond(message._id, str(error), None)
-            else:
-                pass
-            finally:
-                pass
+            # try: 
+            out = process["call"](message)
+            self.respond(message._id, None, out)
+            #     return
+            # except Exception as error:
+            #     logging.warning('remote_program(process_message):' + str(error))
+            #     self.respond(message._id, str(error), None)
+            # else:
+            #     pass
+            # finally:
+            #     pass
         elif method == 'send':
-            try:
-                process["call"](message)
-                return 
-            except Exception as error:
-                logging.warning('remote_program(process_message):' + str(error))
-                self.respond(message._id, error, None)
-            else:
-                pass
-            finally:
-                pass
+            # try:
+            process["call"](message)
+            return 
+            # except Exception as error:
+                # logging.warning('remote_program(process_message):' + str(error))
+                # self.respond(message._id, error, None)
+            # else:
+            #     pass
+            # finally:
+            #     pass
             
         else:
             raise ValueError('method is not of type get/post or send')
@@ -448,8 +481,17 @@ class RemoteProgram(MeClass):
     def send_message(self, message, connection=None):
         message.receiver = {"_id":self._id, "type":"program"}
         message.sender = {"_id":self.program._id, "type":"program"}
+        if self.connected is False:
+            try:
+                self.connect()
+            except RuntimeWarning as warning:
+                print(warning)
+            # Wait till connected or connecting type exceeded
+            print('Connecting to program {}'.format(self.name))
+            while self.connected is False or time.time() - self.connecting_start_time < 5:
+                time.sleep(0.1)
         # Send message 
-        out = self.channel(message, connection)
+        self.channel(message, connection)
         # If we are dealing with a GET or POST request
         if (message.method == 'get' or message.method == 'post'):
             # Add message to message queue and yield from response

@@ -166,6 +166,7 @@ class WebsocketClientConnection(BaseConnection):
             json_message = json.loads(string_message)
             message =  Message(**json_message)
             message.connection = self
+            message.remote = self.remote
             return message
         message = _convert_message(string_message)
 

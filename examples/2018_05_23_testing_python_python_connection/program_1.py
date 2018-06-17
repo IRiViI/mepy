@@ -9,8 +9,10 @@ import math
 
 
 # Program settings
-_id = '5afaaee31a50647f3b9c26c9'
-key = 'sUFeQV8GjKlhPOn'
+# _id = '5afaaee31a50647f3b9c26c9'
+# key = 'sUFeQV8GjKlhPOn'
+_id = '5b03da4d308fcd25b86e6a6b'
+key = 'aBUSQ7gTUA8bNCH'
 
 
 def belongs_to_remote_programs_group_1(remote_program):
@@ -181,6 +183,8 @@ def main():
 
     # Start program
     program.start()
+
+    print('My name is what? My name is who? My name tjike tjike {}'.format(program.name))
 
     # Keep it on
     while True:

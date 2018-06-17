@@ -1,13 +1,15 @@
 # from mepy import User
+
+import sys
+import asyncio
+import warnings
+import time
+
 from mepy.hub import Hub
 from mepy.connections import HubConnection
 from mepy.message import Message
 from mepy.me_class import MeClass
 from mepy.remote_program import RemoteProgram
-
-import sys
-import asyncio
-import warnings
 
 import mepy
 
@@ -100,6 +102,7 @@ class Project(MeClass):
             lambda remote_program: remote_program._id != self.program._id, remote_programs))
         # Add remote program if it's a new one
         for remote_program in remote_programs:
+            remote_program.connecting_start_time = time.time()
             self.add_remote_program(remote_program, connect=True)
         # Add hub connection
         hub_connection_added = False
@@ -115,6 +118,7 @@ class Project(MeClass):
         # add remote programs to my program
         for remote_program in remote_programs:
             is_added = self.program.add_remote_program(remote_program)
+            remote_program.connected = True
         # Return 
         return {}
 
@@ -280,7 +284,7 @@ class Project(MeClass):
                 return remote_program
         return None
 
-    def get_other_programs_by_name(self, name):
+    def get_remote_programs_by_name(self, name):
         remote_programs = []
         # Check if there is an remote program connected to this program
         for remote_program in self.remote_programs:
@@ -290,7 +294,7 @@ class Project(MeClass):
                 remote_programs.append(remote_program)
         return remote_programs
 
-    def get_other_programs_by_type(self, itype):
+    def get_remote_programs_by_type(self, itype):
         remote_programs = []
         # Check if there is an remote program connected to this program
         for remote_program in self.remote_programs:
@@ -300,7 +304,7 @@ class Project(MeClass):
                 remote_programs.append(remote_program)
         return remote_programs
 
-    def get_other_programs_by_tags(self, include, exclude=[]):
+    def get_remote_programs_by_tags(self, include, exclude=[]):
         remote_programs = []
         # Check if there is an remote program connected to this program
         for remote_program in self.remote_programs:

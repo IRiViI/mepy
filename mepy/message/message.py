@@ -27,6 +27,7 @@ class Message:
         self.encoding = kwargs.get('encoding', None)
 
         self.connection = kwargs.get('connection', None)
+        self.remote = kwargs.get('remote', None)
 
     @staticmethod
     def createId():

@@ -12,6 +12,7 @@ from mepy.remote_program import RemoteProgram
 from mepy.servers.http_server import HttpServer
 from mepy.message import Message
 from mepy.connections import WebsocketClientConnection
+from mepy.servers.bluetooth_server import BluetoothServer
 from mepy.servers.uv4l_server import Uv4lServer
 
 
@@ -46,6 +47,9 @@ class Program:
                     "ws": True,
                     "port": 5000
                 },
+                # "bluetooth": {
+                #     "active": True,
+                # }
                 # "https": {
                 #     "ws":True,
                 #     "port":5001
@@ -61,7 +65,10 @@ class Program:
         # Information
         self.information = {
             "network": {},
-            "connectivity": {}
+            "connectivity": {},
+            "mac": {
+                "address" : 'A4:02:B9:6A:CE:BB'
+            }
         }
 
         self.data = {
@@ -71,6 +78,7 @@ class Program:
         # Call structures
         self._on_remote_program_call_structures = []
         self._on_project_call_structures = []
+        self._on_message_calls = {}
 
         # Http server
         # self.settings["servers"]["http"] = kwargs.get('http',{
@@ -101,6 +109,17 @@ class Program:
 
         # Add remote values
         self.combine(**kwargs)
+
+    def start_bluetooth_server(self):
+        if 'bluetooth' in self.settings['servers']:
+            properties = self.settings['servers']['bluetooth'].copy()
+            bluetooth_server = BluetoothServer(**properties)
+            bluetooth_server.set_program(self)
+            self.servers["bluetooth"] = bluetooth_server
+            self.information["connectivity"]["bluetooth"]={
+                "host": True,
+                "client": True,
+            }
 
     def start_http_servers(self):
         if self.settings['servers']['http']:
@@ -254,10 +273,36 @@ class Program:
         if ('projects' in kwargs):
             self._process_projects(kwargs.get('projects'))
 
+    def on_send_message(self, endpoint, call, **kwargs):
+        self.on_message('send', endpoint, call, **kwargs)
+
+    def on_message(self, method, endpoint, call, **kwargs):
+        # Check input
+        if not (method in ['get', 'post', 'send']):
+            raise ValueError('method type ' + method + ' is not valid')
+        # Create an endpoint structure if it does not exist
+        if not (endpoint in self._on_message_calls):
+            self._on_message_calls[endpoint] = {}
+        # Add call
+        self._on_message_calls[endpoint][method] = {
+            "call": call,
+        }
+
+
     def is_me(self, remote_program):
         return self._id == remote_program._id
 
     def _on_remote_program(self, remote_program):
+        # Add message calls to remote program
+        for call_endpoint_key in self._on_message_calls:
+            print(call_endpoint_key)
+            call_endpoint = self._on_message_calls[call_endpoint_key]
+            for call_method_key in call_endpoint:
+                call_method = call_endpoint[call_method_key]
+                call = call_method['call']
+                remote_program.on(call_method_key, call_endpoint_key, call)
+
+        # Trigger the on remote program calls
         for call_structure in self._on_remote_program_call_structures:
             call_structure['call'](remote_program)
 
@@ -279,8 +324,8 @@ class Program:
 
         # raise RuntimeWarning('on_project is not defined')
         # 
-    def on_message(self, message):
-        pass
+    # def on_message(self, message):
+    #     pass
 
     # def on(self, key, call):
     #     if (key == 'remote_program'):
@@ -505,6 +550,8 @@ class Program:
 
         self.start_uv4l_server()
 
+        self.start_bluetooth_server()
+
         # Update projects
         if len(self.projects) > 0:
             self.update_projects()
@@ -600,11 +647,19 @@ class Program:
         #     raise 
     
     def get_connectivity_information(self):
+        if ("bluetooth" in self.information["connectivity"] and
+            self.information["connectivity"]["bluetooth"]["host"] is True):
+            update = self.servers["bluetooth"].update_information()
+            self.information["connectivity"]["bluetooth"].update(update)
+
         return self.information["connectivity"]
         # information = []
         # for server in self.servers:
         #     information.append(server.getInformation())
         # return information
+        # 
+    def get_mac(self):
+        return self.information["mac"]
 
     def get_data_project_by_project_id(self, project_id):
         for dataProject in self.data["projects"]:
