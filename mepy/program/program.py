@@ -560,14 +560,15 @@ class Program:
         if len(self.hubs) > 0:
             self.update_hubs()
 
+
         # Connect to hubs
         if len(self.hubs) > 0:
             self.connect_to_hubs()
 
+
         #  Connect to projects
         if len(self.projects) > 0:
             self.connect_to_projects()
-
 
 
         # # Save hub information locally

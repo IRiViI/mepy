@@ -69,11 +69,6 @@ class BluetoothHostConnection(BaseConnection):
 
 
     def init(self):
-        backlog = 1
-        self.socket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-        self.socket.bind((self.mac, self.port))
-        self.socket.listen(backlog)
-        self.client, self.address = self.socket.accept()
         self.run()
 
     def start(self):

@@ -2,7 +2,7 @@
 
 import threading
 import select
-import Queue
+# import Queue
 import time
 import json
 import asyncio
@@ -80,35 +80,35 @@ class BluetoothServer(BaseServer):
             [self.socket], 
             self.clients, 
             [self.socket])
-        for readable in readables:
-            if readable is self.socket:
-                socket = readable
-                client, client_address = socket.accept()
-                client.setblocking(0)
-                self.clients.append(client)
-                self.message_queues[client] = Queue.Queue()
-            else:
-                client = readable
-                data = socket.recv(self.byte_size)
-                if data:
-                    self.message_queues[client].put(data)
-                else:
-                    self._oncloseclient(client)
+        # for readable in readables:
+        #     if readable is self.socket:
+        #         socket = readable
+        #         client, client_address = socket.accept()
+        #         client.setblocking(0)
+        #         self.clients.append(client)
+        #         self.message_queues[client] = Queue.Queue()
+        #     else:
+        #         client = readable
+        #         data = socket.recv(self.byte_size)
+        #         if data:
+        #             self.message_queues[client].put(data)
+        #         else:
+        #             self._oncloseclient(client)
 
-        for writable in writables:
-            client = writable
-            try:
-                message = self.message_queues[client].get_nowait()
-            else:
-                client.send(message)
+        # for writable in writables:
+        #     client = writable
+        #     # try:
+        #     #     message = self.message_queues[client].get_nowait()
+        #     # else:
+        #     #     client.send(message)
 
-        for exception in exceptionals:
-            client = exception
-            self.clients.remove(client)
-            if  in outputs:
-                outputs.remove(s)
-            s.close()
-            del message_queues[s]
+        # for exception in exceptionals:
+        #     client = exception
+        #     self.clients.remove(client)
+        #     if  in outputs:
+        #         outputs.remove(s)
+        #     s.close()
+        #     del message_queues[s]
 
 
 
