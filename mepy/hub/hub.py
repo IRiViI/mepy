@@ -81,13 +81,13 @@ class Hub(MeClass):
         self.add_connection(websocket_client_connection)
 
         # Http connection
-        http_client_connection = HttpClientConnection(
-            remote=self,
-            port=self.port,
-            address=self.address,
-            secure=True)
+        # http_client_connection = HttpClientConnection(
+        #     remote=self,
+        #     port=self.port,
+        #     address=self.address,
+        #     secure=True)
 
-        self.add_connection(http_client_connection, position='bottom')
+        # self.add_connection(http_client_connection, position='bottom')
 
     def redirect_message(self, message):
         # Process response
@@ -189,3 +189,7 @@ class Hub(MeClass):
                 del self.queue[idx]
                 # Return response
                 return response
+
+    def terminate(self):
+        for connection in self.connections:
+            connection.terminate()

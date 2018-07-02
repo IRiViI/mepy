@@ -13,6 +13,7 @@ from mepy.servers.http_server import HttpServer
 from mepy.message import Message
 from mepy.connections import WebsocketClientConnection
 from mepy.servers.bluetooth_server import BluetoothServer
+from mepy.servers.websocket_server import WebsocketServer
 from mepy.servers.uv4l_server import Uv4lServer
 
 
@@ -53,6 +54,10 @@ class Program:
                 # "https": {
                 #     "ws":True,
                 #     "port":5001
+                # }
+                # "ws":{
+                #     "active": True,
+                #     "port": 500
                 # }
             }
         }
@@ -121,8 +126,21 @@ class Program:
                 "client": True,
             }
 
+
+    def start_websocket_server(self):
+        if 'ws' in self.settings['servers']:
+            properties = self.settings['servers']['ws'].copy()
+            websocket_server = WebsocketServer(**properties)
+            websocket_server.set_program(self)
+            self.servers["ws"] = websocket_server
+            self.information["connectivity"]["ws"]={
+                "host": True,
+                "client": True,
+            }
+            websocket_server.start()
+
     def start_http_servers(self):
-        if self.settings['servers']['http']:
+        if 'http' in self.settings['servers']:
             properties = self.settings['servers']['http'].copy()
             properties["secure"] = False
             http_server = HttpServer(**properties)
@@ -295,7 +313,6 @@ class Program:
     def _on_remote_program(self, remote_program):
         # Add message calls to remote program
         for call_endpoint_key in self._on_message_calls:
-            print(call_endpoint_key)
             call_endpoint = self._on_message_calls[call_endpoint_key]
             for call_method_key in call_endpoint:
                 call_method = call_endpoint[call_method_key]
@@ -348,6 +365,7 @@ class Program:
                 if isinstance(project,str):
                     project = {"_id":project}
                 project = Project(self, **project)
+                project.update()
             self.add_project(project)
 
     def _process_database(self, database):
@@ -552,6 +570,8 @@ class Program:
 
         self.start_bluetooth_server()
 
+        self.start_websocket_server()
+
         # Update projects
         if len(self.projects) > 0:
             self.update_projects()
@@ -704,3 +724,14 @@ class Program:
         self._on_remote_program(remote_program)
         # Return true
         return True
+
+    def terminate(self):
+        for project in self.projects:
+            project.terminate()
+        for remote_program in self.remote_programs:
+            remote_program.terminate()
+        for hub in self.hubs:
+            hub.terminate()
+        for serverKey in self.servers:
+            server = self.servers[serverKey]
+            server.terminate()

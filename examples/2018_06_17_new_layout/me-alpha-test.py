@@ -8,8 +8,8 @@ import time
 
 
 # Program settings
-_id = '5b2e55e01908720c63f15f0f'
-key = 'TIo8tqHEXlZvNkH'
+_id = '5b3a29d2a538952079f3afe0'
+key = 'VHcnjSU9IERLQK2'
 
 
 def handle_project(project):
@@ -32,8 +32,8 @@ def handle_remote_program(remote_program):
     print(text)
 
 
-def handle_send_test_message(message):
-    """Handle a send testmessage"""
+def handle_send_event_message(message):
+    """Handle a send eventmessage"""
 
     remote_program = message.remote
     # connection = message.connection
@@ -42,8 +42,8 @@ def handle_send_test_message(message):
     print(text)
 
 
-def handle_send_event_message(message):
-    """Handle a send eventmessage"""
+def handle_send_move_message(message):
+    """Handle a send movemessage"""
 
     remote_program = message.remote
     # connection = message.connection
@@ -60,8 +60,8 @@ if __name__ == '__main__':
         key=key)
 
     # Add message handlers
-    program.on_send_message('test', handle_send_test_message)
     program.on_send_message('event', handle_send_event_message)
+    program.on_send_message('move', handle_send_move_message)
 
     # Handle newly connected programs
     program.on_remote_program(handle_remote_program)
@@ -72,15 +72,14 @@ if __name__ == '__main__':
     # Start program
     program.start()
 
+    print(mepy.__version__)
+
     print('Hello {}'.format(program.name))
 
     # Keep it on
     while True:
-
-        myProject = program.get_project_by_name('Default')
         try:
-            time.sleep(1)
+            time.sleep(0.1)
         except KeyboardInterrupt:
-            program.terminate()
             print('Bye bye')
             sys.exit(0)

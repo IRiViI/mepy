@@ -102,7 +102,7 @@ class RemoteProgram(MeClass):
 
         def on_unprocessed_message(message):
             print('Unprocessed {} message'.format(message.method))
-            raise RuntimeError('Unkown method or endpoint')
+            print(RuntimeError('Unkown method or endpoint'))
 
         self.on_get('*', on_unprocessed_message)
 
@@ -522,3 +522,6 @@ class RemoteProgram(MeClass):
                 del self.queue[idx]
                 # Return response
                 return response
+
+    def terminate(self):
+        pass

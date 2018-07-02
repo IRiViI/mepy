@@ -220,6 +220,8 @@ class WebsocketClientConnection(BaseConnection):
         #         raise error
             # print('_process_message at websocket client: ' + error)
 
+    def terminate(self):
+        self.ws.keep_running = False
 
     def send(self, endpoint, body, query={}):
         self.remote.send_message(Message(

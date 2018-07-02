@@ -38,6 +38,8 @@ class Project(MeClass):
             }
         }
 
+        self.last_db_update = None
+
         self._on_remote_program_call_structures = []
 
         self.combine(**kwargs)
@@ -67,7 +69,6 @@ class Project(MeClass):
     def _on_remote_program(self, remote_program, **kwargs):
         connect = kwargs.get('connect', False)
         update = kwargs.get('update', False)
-        print(self._on_remote_program_call_structures)
         for call_structure in self._on_remote_program_call_structures:
             if call_structure['connect'] is False and connect is True:
                 continue
@@ -152,11 +153,6 @@ class Project(MeClass):
             raise TypeError("hub is not instance of 'Hub'")
         self.hub = hub
 
-    @asyncio.coroutine
-    def temp(self, *args, **kwargs):
-        print('started', 1)
-        yield from asyncio.sleep(1)
-        print('finished', 2)
 
     def connect(self, *args, **kwargs):
         # Create hub connection
@@ -182,18 +178,23 @@ class Project(MeClass):
             raise RuntimeError("Project '" + (self.name or self._id) + "' could not be found")
         self.combine(**dbProject)
 
-    def update(self):
+    def update(self, dt=10):
+        if self.last_db_update is not None and time.time() - self.last_db_update < dt:
+            return False
         try:
             data_project = self.program.get_data_project_by_project_id(self._id)
             if data_project and data_project["key"]:
                 self.set_key(data_project["key"])
         except :
             pass
-        print(self.program.data)
         dbProject = self.program.database.get_project(self)
         if not dbProject: 
             raise RuntimeError("Project '" + (self.name or self._id) + "' could not be found")
         self.combine(**dbProject)
+        # Update late database updated time
+        self.last_db_update = time.time()
+        # true
+        return True
 
     def set_key(self, key):
         self.key = key
@@ -484,3 +485,6 @@ class Project(MeClass):
                 del self.queue[idx]
                 # Return response
                 return response
+
+    def terminate(self):
+        pass

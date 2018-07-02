@@ -45,9 +45,9 @@ class HttpServer(BaseServer):
         # Start the server
         def start():
             asyncio.set_event_loop(asyncio.new_event_loop())
-            print('Http server is hosting')
-            print('port: ' + str(self.port))
-            print('security: ' + str(self.secure))
+            # print('Http server is hosting')
+            # print('port: ' + str(self.port))
+            # print('security: ' + str(self.secure))
             app = __make_app()
             app.listen(self.port)
             try:
@@ -112,6 +112,11 @@ class HttpServer(BaseServer):
         else :
             raise RuntimeError('authentication method is unkown')
 
+
+    def terminate(self):
+        tornado.ioloop.IOLoop.instance().stop()
+
+
 class WebSocket(tornado.websocket.WebSocketHandler):
     # A bit newb way of dealing with it, but works right?
 
@@ -125,7 +130,6 @@ class WebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
         websocket_host_connection = WebsocketHostConnection(self)
         self.connection = websocket_host_connection
-        print("WebSocket opened")
 
     def on_message(self, string_message):
         if (self.connection.remote):
@@ -247,7 +251,7 @@ class MessageRoute(tornado.web.RequestHandler):
             self.write(errorMessage.toJSON())
             self.finish() 
             return
-        print(message.__dict__)
+
         # Execute message
         response = connection.on_message(message)
         # If no response has been given
@@ -255,17 +259,17 @@ class MessageRoute(tornado.web.RequestHandler):
             # Don't mind the response if it was a publish thing
             if message.method == 'publish':
                 response = mepy.Message(_id=message._id,
-                                                         method='response',
-                                                         body={},
-                                                         receiver=message.sender,
-                                                         sender=message.receiver)
+                                        method='response',
+                                        body={},
+                                        receiver=message.sender,
+                                        sender=message.receiver)
             # If a response was expected, but not was given
             else:
                 response = mepy.Message(_id=message._id,
-                                                         method='response',
-                                                         error={'message':'No response given'},
-                                                         receiver=message.sender,
-                                                         sender=message.receiver)
+                                        method='response',
+                                        error={'message':'No response given'},
+                                        receiver=message.sender,
+                                        sender=message.receiver)
         # Send response
         self.set_status(200)
         self.write(response.toJSON())

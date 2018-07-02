@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import sys
-sys.path.insert(0, "../..")
 import mepy
 import time
 
 
 # Program settings
-_id = '5b2e55e01908720c63f15f0f'
-key = 'TIo8tqHEXlZvNkH'
+_id = '5b362db85d826811d48290ee'
+key = '2nz55V2pw7shK5Q'
 
 
 def handle_project(project):
@@ -32,26 +31,6 @@ def handle_remote_program(remote_program):
     print(text)
 
 
-def handle_send_test_message(message):
-    """Handle a send testmessage"""
-
-    remote_program = message.remote
-    # connection = message.connection
-    body = message.body
-    text = 'program {} send {} to you'.format(remote_program.name, body)
-    print(text)
-
-
-def handle_send_event_message(message):
-    """Handle a send eventmessage"""
-
-    remote_program = message.remote
-    # connection = message.connection
-    body = message.body
-    text = 'program {} send {} to you'.format(remote_program.name, body)
-    print(text)
-
-
 if __name__ == '__main__':
 
     # Create program object
@@ -60,8 +39,6 @@ if __name__ == '__main__':
         key=key)
 
     # Add message handlers
-    program.on_send_message('test', handle_send_test_message)
-    program.on_send_message('event', handle_send_event_message)
 
     # Handle newly connected programs
     program.on_remote_program(handle_remote_program)
@@ -76,11 +53,8 @@ if __name__ == '__main__':
 
     # Keep it on
     while True:
-
-        myProject = program.get_project_by_name('Default')
         try:
-            time.sleep(1)
+            time.sleep(0.1)
         except KeyboardInterrupt:
-            program.terminate()
             print('Bye bye')
             sys.exit(0)
