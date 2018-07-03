@@ -31,6 +31,7 @@ setup(
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
         'Natural Language :: English',
+        'License :: OSI Approved :: GNU Affero General Public License v3 (AGPLv3)',
         "Programming Language :: Python :: 2",
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
@@ -54,6 +55,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/IRiViI/mepy',
-    version='0.2.5',
+    version='1.0.1',
     zip_safe=False,
 )

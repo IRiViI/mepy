@@ -1,1 +1,6 @@
-At This point in time we only provide a license for community uses like the GNU AGPLv3 but we will publish this library with different licenses in the future.
+Machine Enigine
+
+At This point in time we only provide a license for community uses like the GNU AGPLv3 
+but we will publish this library with different licenses in the future.
+
+

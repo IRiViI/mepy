@@ -2,14 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import sys
-sys.path.insert(0, "../..")
 import mepy
 import time
 
 
 # Program settings
-_id = '5b3a29d2a538952079f3afe0'
-key = 'VHcnjSU9IERLQK2'
+_id = '5b3b506fff603a233a3214cf'
+key = 'Wb6k2A4O7viWeUq'
 
 
 def handle_project(project):
@@ -32,8 +31,8 @@ def handle_remote_program(remote_program):
     print(text)
 
 
-def handle_send_event_message(message):
-    """Handle a send eventmessage"""
+def handle_send_throttle_message(message):
+    """Handle a send throttlemessage"""
 
     remote_program = message.remote
     # connection = message.connection
@@ -42,8 +41,8 @@ def handle_send_event_message(message):
     print(text)
 
 
-def handle_send_move_message(message):
-    """Handle a send movemessage"""
+def handle_send_event_message(message):
+    """Handle a send eventmessage"""
 
     remote_program = message.remote
     # connection = message.connection
@@ -60,8 +59,8 @@ if __name__ == '__main__':
         key=key)
 
     # Add message handlers
+    program.on_send_message('throttle', handle_send_throttle_message)
     program.on_send_message('event', handle_send_event_message)
-    program.on_send_message('move', handle_send_move_message)
 
     # Handle newly connected programs
     program.on_remote_program(handle_remote_program)
@@ -71,8 +70,6 @@ if __name__ == '__main__':
 
     # Start program
     program.start()
-
-    print(mepy.__version__)
 
     print('Hello {}'.format(program.name))
 

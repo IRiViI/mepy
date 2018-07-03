@@ -10,11 +10,17 @@ MePy
 Machine Engine connect and develop faster
 
 
+Installation
+------------
 
-Features
---------
+Download library: http://alpha.machine-engine.com/assets/mepy/mepy-1.0.0.whl
 
-* TODO
+Installation:
+* Ubuntu/Debian: 
+```
+sudo pip3 install mepy-1.0.0.whl
+```
+
 
 Credits
 -------
