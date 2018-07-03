@@ -16,7 +16,8 @@ Installation
 Download library: http://alpha.machine-engine.com/assets/mepy/mepy-1.0.0.whl
 
 Installation:
-* Ubuntu/Debian: 
+
+* Ubuntu/Debian
 
 ```
 sudo pip3 install mepy-1.0.0.whl
