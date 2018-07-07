@@ -32,11 +32,14 @@ class BluetoothHostConnection(BaseConnection):
 
     def combine(self, *args, **kwargs):
         self.remote = kwargs.get('remote', None)
-        self.mac = kwargs.get('mac', None)
+        # self.mac = kwargs.get('mac', None)
         # self.address = kwargs.get('address', '')
-        self.port = kwargs.get('port', 3)
+        self.client = kwargs.get('client', '')
+        # self.port = kwargs.get('port', 3)
 
         self.size = kwargs.get('size', 1024)
+
+        print('yaaaaay')
 
     # def runonce(self):
     #     for message in self._messages:
@@ -48,35 +51,32 @@ class BluetoothHostConnection(BaseConnection):
     #         self._remove_message(message)
 
     def run(self):
-
+        # Set running to true
+        self.running = True
         while self.running is True:
             # Check incomming message:
             text = self.client.recv(self.size)
             print(text)
-            # Send messages
-            for message in self._messages:
-                # Transform message to byte stream
-                byte_object = json.dumps(message.toJSON()).encode('UTF-8')
-                # Send messages
-                self.socket.sendall(byte_object)
-                # Remove message from list
-                self._remove_message(message)
+            # # Send messages
+            # for message in self._messages:
+            #     # Transform message to byte stream
+            #     byte_object = json.dumps(message.toJSON()).encode('UTF-8')
+            #     # Send messages
+            #     self.socket.sendall(byte_object)
+            #     # Remove message from list
+            #     self._remove_message(message)
             time.sleep(self.period)
 
     def set_remote(self, remote):
 
         self.remote = remote
 
-
-    def init(self):
-        self.run()
+    # def init(self):
+    #     self.run()
 
     def start(self):
-
         # Create thread
-        self._thread = threading.Thread(target=self.init)
-        # Set running to true
-        self.running = True
+        self._thread = threading.Thread(target=self.run)
         # Start thread
         self._thread.start()
 

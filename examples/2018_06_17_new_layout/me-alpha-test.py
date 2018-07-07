@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import sys
+sys.path.insert(0, "../..")
 import mepy
 import time
 
 
 # Program settings
-_id = '5b3b506fff603a233a3214cf'
-key = 'Wb6k2A4O7viWeUq'
+_id = '5b3b7e80a9247b4ce6394ec0'
+key = 'A9K8OMKtJgbeWA5'
 
 
 def handle_project(project):
@@ -31,8 +32,8 @@ def handle_remote_program(remote_program):
     print(text)
 
 
-def handle_send_throttle_message(message):
-    """Handle a send throttlemessage"""
+def handle_send_event_message(message):
+    """Handle a send eventmessage"""
 
     remote_program = message.remote
     # connection = message.connection
@@ -41,8 +42,8 @@ def handle_send_throttle_message(message):
     print(text)
 
 
-def handle_send_event_message(message):
-    """Handle a send eventmessage"""
+def handle_send_throttle_message(message):
+    """Handle a send throttlemessage"""
 
     remote_program = message.remote
     # connection = message.connection
@@ -56,11 +57,19 @@ if __name__ == '__main__':
     # Create program object
     program = mepy.Program(
         _id=_id,
-        key=key)
-
+        key=key,
+        http={
+            "port":5000,
+            "active": True
+        },
+        bluetooth=True,
+        u4vl={
+            "active":False
+        })
+    print(program.settings)
     # Add message handlers
-    program.on_send_message('throttle', handle_send_throttle_message)
     program.on_send_message('event', handle_send_event_message)
+    program.on_send_message('throttle', handle_send_throttle_message)
 
     # Handle newly connected programs
     program.on_remote_program(handle_remote_program)

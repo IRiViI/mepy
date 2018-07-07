@@ -39,46 +39,50 @@ class Program:
 
         # Settings
         self.settings = {
-            "init": {
-                "replace": True},
-            "saveLocally": False,
+            # "init": {
+            #     "replace": True},
+            # "saveLocally": False,
             "servers": {
                 "http": {
                     "active": True,
                     "ws": True,
                     "port": 5000
                 },
-                # "bluetooth": {
-                #     "active": True,
-                # }
-                # "https": {
-                #     "ws":True,
-                #     "port":5001
-                # }
-                # "ws":{
-                #     "active": True,
-                #     "port": 500
-                # }
+                "bluetooth": {
+                    "active": False,
+                    "port": 1
+                },
+                "https": {
+                    "ws": False,
+                    "port": 5001
+                },
+                "socket":{
+                    "active": False,
+                    "port": 500
+                },
+                "u4vl":{
+                    "active": False,
+                }
             }
         }
-        # uv4l
-        if kwargs.get('uv4l') is True:
-            self.settings['servers']['uv4l'] = {
-                "active": True
-            }
 
         # Information
         self.information = {
             "network": {},
             "connectivity": {},
-            "mac": {
-                "address" : 'A4:02:B9:6A:CE:BB'
-            }
+            "mac": {},
+            "link": {}
         }
 
         self.data = {
             "projects": []
         }
+
+        # uv4l
+        if kwargs.get('uv4l') is True:
+            self.settings['servers']['uv4l'] = {
+                "active": True
+            }
 
         # Call structures
         self._on_remote_program_call_structures = []
@@ -98,8 +102,6 @@ class Program:
         #     "ws":True,
         #     "port":5000
         # })
-        
-
 
         # Set user
         if ('user' in kwargs):
@@ -112,15 +114,71 @@ class Program:
         #  Update network information
         self.update_network_information()
 
+        # Update link information
+        self.update_link_information()
+
         # Add remote values
         self.combine(**kwargs)
 
+    def combine(self, *args, **kwargs):
+        """Make adjustements to the program
+        
+        [description]
+        
+        Arguments:
+            *args {[type]} -- [description]
+            **kwargs {[type]} -- [description]
+        """
+
+        # Changes some basic things
+        self._id = kwargs.get('_id', self._id)
+        self.name = kwargs.get('name', self.name)
+        self.type = kwargs.get('type', self.type)
+        self.data = kwargs.get('data', self.type)
+
+        key = kwargs.get('key', self.key)
+        if (isinstance(key, str)):
+            key = {"key": key}
+        self.key = key
+        self.tags = kwargs.get('tags', self.tags)
+        # self.settings["init"] = kwargs.get('init', self.settings["init"])
+        # self.settings["saveLocally"] = kwargs.get('saveLocally', self.settings["saveLocally"])
+
+        # Add calls
+        if ('on' in kwargs):
+            calls = kwargs.get('on')
+            for key in calls:
+                call = calls[key]
+                self.on(key, call)
+
+        # Servers
+        # Change the settings of the servers
+        for server_key in ["http", "https", "bluetooth", "socket", "u4vl"]:
+            if server_key in kwargs:
+                settings = kwargs.get(server_key)
+                if isinstance(settings, bool):
+                    self.settings["servers"][server_key]["active"] = settings
+                else:
+                    for key in settings:
+                        self.settings["servers"][server_key][key] = settings[key]
+
+        # Set user
+        if ('projects' in kwargs):
+            self._process_projects(kwargs.get('projects'))
+
     def start_bluetooth_server(self):
-        if 'bluetooth' in self.settings['servers']:
+        # Check if the bluetooth server should start
+        if ('bluetooth' in self.settings['servers'] and
+            self.settings['servers']['bluetooth']['active'] is True):
+            # Copy the settings of the server
             properties = self.settings['servers']['bluetooth'].copy()
+            # Add the program to the settings dict
+            properties['program']=self
+            # Create server object
             bluetooth_server = BluetoothServer(**properties)
-            bluetooth_server.set_program(self)
+            # Add server object to the servers
             self.servers["bluetooth"] = bluetooth_server
+            # Add bluetooth the the connection options
             self.information["connectivity"]["bluetooth"]={
                 "host": True,
                 "client": True,
@@ -214,82 +272,9 @@ class Program:
             self.servers["uv4l_server"] = uv4l_server
             uv4l_server.init()
 
-    def patch_settings(self, settings):
-        for key in settings:
-            # print(key, settings[key])
-            # if key == 'servers':
-            #     for server in settings['servers']:
-            #         replaced = False
-            #         for i, iServer in enumerate(self.settings['servers']):
-            #             # Look for similar server 
-            #             if (iServer['type'] == server['type'] 
-            #                 and iServer['secure'] == server['secure']):
-            #                 # Replace server
-            #                 self.settings['servers'][i] = server
-            #                 replaced = True
-            #                 break
-            #         print('replaced', replaced)
-            #         if replaced is False:
-            #             # Add server
-            #             self.settings['servers'].append(server)
-
-
-            if key in self.settings:
-                # Update settings if already present
-                if isinstance(self.settings[key],dict):
-                    # The try and except are for the version mismatch 
-                    try:
-                        self.settings[key].update(settings[key])
-                    except:
-                        pass
-                else:
-                    self.settings[key]=settings[key]
-            else :
-                # Add settings if new
-                self.settings[key]=settings[key]
-
-
         # self.settings.update(settings)
         # print('--',self.settings)
 
-    def combine(self, *args, **kwargs):
-        self._id = kwargs.get('_id', self._id)
-        self.name = kwargs.get('name', self.name)
-        self.type = kwargs.get('type', self.type)
-        self.data = kwargs.get('data', self.type)
-
-        key = kwargs.get('key', self.key)
-        if (isinstance(key, str)):
-            key = {"key": key}
-        self.key = key
-        self.tags = kwargs.get('tags', self.tags)
-        self.settings["init"] = kwargs.get('init', self.settings["init"])
-        self.settings["saveLocally"] = kwargs.get('saveLocally', self.settings["saveLocally"])
-
-        # Process settings
-        if ('settings' in kwargs):
-            settings = kwargs.get('settings')
-            self.patch_settings(settings)
-            # print('--setttings', self.settings)
-
-        # Add calls
-        if ('on' in kwargs):
-            calls = kwargs.get('on')
-            for key in calls:
-                call = calls[key]
-                self.on(key, call)
-
-        # Server
-        if ('servers' in kwargs):
-            servers = kwargs.get('servers')
-            if ('http' in servers):
-                self.settings["servers"]['http'] = servers["http"]
-                # print('aaaaaaaaaaaa')
-                # self._process_http_server(servers['http'])
-
-        # Set user
-        if ('projects' in kwargs):
-            self._process_projects(kwargs.get('projects'))
 
     def on_send_message(self, endpoint, call, **kwargs):
         self.on_message('send', endpoint, call, **kwargs)
@@ -542,6 +527,10 @@ class Program:
             "receiver": receiver})
         return body["token"]
 
+    # def update_mac(self):
+    #     mac = ni.ifaddresses('eth0')[ni.AF_LINK]
+    #     print(mac)
+
     @asyncio.coroutine
     def _save_hubs_locally(self):
         print('save locally')
@@ -562,6 +551,9 @@ class Program:
 
         # Update program
         self.update()
+
+        # Get your own mac address
+        # self.update_mac()
 
         # Start Http server
         self.start_http_servers()
@@ -698,8 +690,26 @@ class Program:
         ips = []
         for network_string in network_string_list:
             try:
-                address = ni.ifaddresses(network_string)[ni.AF_INET][0]['addr']
-                self.information["network"][network_string] = {"address": address}
+                net = ni.ifaddresses(network_string)[ni.AF_INET][0]
+                net_address = net['addr']
+                self.information["network"][network_string] = {
+                    "address": address
+                    }
+            except:
+                pass
+
+    def update_link_information(self):
+        network_string_list = ['eno1', 'eth0']
+        ips = []
+        for network_string in network_string_list:
+            try:
+                link = ni.ifaddresses(network_string)[ni.AF_LINK][0]
+                mac_address = link['addr']
+                self.information["link"][network_string] = {
+                    "address": mac_address
+                    }
+                print(mac_address)
+                print(self.information["link"])
             except:
                 pass
 

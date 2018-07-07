@@ -67,19 +67,42 @@ class BluetoothServer(BaseServer):
             time.sleep(self.period)
 
 
-    def _oncloseclient(self, client):
-        self.clients.remove(client)
-        client.close()
-        del self.message_queues[client]
-        print('client closed')
+    # def _oncloseclient(self, client):
+    #     self.clients.remove(client)
+    #     client.close()
+    #     del self.message_queues[client]
+    #     print('client closed')
 
     def runonce(self):
+        client, address = self.socket.accept()
+
+        connection = BluetoothHostConnection(
+            client=client)
+
+        self._add_connection(connection)
+
+        # while True:
+        #     text = client.recv(size)
+        #     if text:
+        #         textString = text.decode("utf-8", "strict")
+        #         try:
+        #             data = json.loads(textString)
+        #         except:
+        #             print('wrong', textString)
+        #         # print(data)
+        #         # print()
+        #         print(data['a'], time.time()-float(data['time']))
+        #         mytext = json.dumps({
+        #             "time": time.time()
+        #             })
+        #         client.sendall(mytext.encode('UTF-8'))
+
         # for connection in self.connections:
         #     connection.runonce()
-        readables, writables, exceptionals = select.select(
-            [self.socket], 
-            self.clients, 
-            [self.socket])
+        # readables, writables, exceptionals = select.select(
+        #     [self.socket], 
+        #     self.clients, 
+        #     [self.socket])
         # for readable in readables:
         #     if readable is self.socket:
         #         socket = readable
@@ -112,7 +135,8 @@ class BluetoothServer(BaseServer):
 
 
 
-
+    def stop(self):
+        self.runnings = False
 
     def start(self):
         self.socket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
