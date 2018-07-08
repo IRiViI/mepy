@@ -2,12 +2,13 @@ import asyncio
 # For getting network info
 import netifaces as ni 
 import sys
-
+import os
 import mepy
 from mepy.user import User
 from mepy.project import Project
 from mepy.database import Database
 from mepy.hub import Hub
+from mepy.machine import Machine
 from mepy.remote_program import RemoteProgram
 from mepy.servers.http_server import HttpServer
 from mepy.message import Message
@@ -15,7 +16,8 @@ from mepy.connections import WebsocketClientConnection
 from mepy.servers.bluetooth_server import BluetoothServer
 from mepy.servers.websocket_server import WebsocketServer
 from mepy.servers.uv4l_server import Uv4lServer
-
+from ..hardware import BluetoothDevice
+from ..others import others
 
 class Program:
 
@@ -33,6 +35,9 @@ class Program:
         self.projects = []
         self.remote_programs = []
         self.hubs = []
+        self.machine = Machine(program=self)
+
+        self.ssl_directory = None
 
         # Servers
         self.servers = {}
@@ -141,6 +146,9 @@ class Program:
             key = {"key": key}
         self.key = key
         self.tags = kwargs.get('tags', self.tags)
+
+        self.ssl_directory = kwargs.get("ssl_directory",
+            '{}/..'.format(os.path.dirname(os.path.abspath(__file__))))
         # self.settings["init"] = kwargs.get('init', self.settings["init"])
         # self.settings["saveLocally"] = kwargs.get('saveLocally', self.settings["saveLocally"])
 
@@ -166,14 +174,25 @@ class Program:
         if ('projects' in kwargs):
             self._process_projects(kwargs.get('projects'))
 
+    def update_machine(self):
+        self.machine.update()
+
     def start_bluetooth_server(self):
         # Check if the bluetooth server should start
         if ('bluetooth' in self.settings['servers'] and
             self.settings['servers']['bluetooth']['active'] is True):
+            # Get all bluetooth devices
+            bluetooth_devices = self.machine.get_devices_of_type(BluetoothDevice)
+            if len(bluetooth_devices) < 1:
+                print(RunWarning("No bluetooth devices known by program"))
+                return
+            # Get the first bluetooth device found
+            bluetooth_device = bluetooth_devices[0]
             # Copy the settings of the server
             properties = self.settings['servers']['bluetooth'].copy()
             # Add the program to the settings dict
             properties['program']=self
+            properties['device']=bluetooth_device
             # Create server object
             bluetooth_server = BluetoothServer(**properties)
             # Add server object to the servers
@@ -183,6 +202,8 @@ class Program:
                 "host": True,
                 "client": True,
             }
+            # Start the server
+            bluetooth_server.start()
 
 
     def start_websocket_server(self):
@@ -552,6 +573,19 @@ class Program:
         # Update program
         self.update()
 
+        # Update the machine 
+        self.machine.update()
+        # Create ssl key
+        self.openSSL = others.OpenSSL(
+            country="NL",
+            provice="Zuid Holland",
+            locality="Rotterdam",
+            organisation="Machine Engine",
+            unit="client",
+            name="me",
+            directory=self.ssl_directory)
+        self.openSSL.generate()
+
         # Get your own mac address
         # self.update_mac()
 
@@ -686,7 +720,7 @@ class Program:
     #     print(program_properties)
 
     def update_network_information(self):
-        network_string_list = ['lo', 'eno1', 'wlo1','wlan0','eth0']
+        network_string_list = ni.interfaces()
         ips = []
         for network_string in network_string_list:
             try:
@@ -697,6 +731,22 @@ class Program:
                     }
             except:
                 pass
+
+        # This is cleaner:
+        # network_string_list = netifaces.interfaces() # ['lo', 'eno1', 'wlo1','wlan0','eth0']
+        # ips = []
+        # for network_string in network_string_list:
+        #     try:
+        #         inet = ni.ifaddresses(network_string)[ni.AF_INET][0]
+        #         inet_address = net['addr']
+        #         link = ni.ifaddresses(network_string)[ni.AF_LINK][0]
+        #         mac_address = link['addr']
+        #         self.information["network"][network_string] = {
+        #             "inet": {"address": inet_address},
+        #             "link": {"address": mac_address}
+        #             }
+        #     except:
+        #         pass
 
     def update_link_information(self):
         network_string_list = ['eno1', 'eth0']

@@ -14,6 +14,7 @@ import logging
 from mepy.message import Message
 from mepy.servers.base_server import BaseServer
 from mepy.connections.bluetooth_host_connection import BluetoothHostConnection
+
 # import socket
 import time
 import json
@@ -30,7 +31,8 @@ class BluetoothServer(BaseServer):
 
         self.type = "bluetooth"
         self.secure = kwargs.get("secure", False)
-        self.program = kwargs.get("program", False)
+        self.program = kwargs.get("program", None)
+        self.device = kwargs.get("device", None)
 
         self.running = False
 
@@ -140,7 +142,7 @@ class BluetoothServer(BaseServer):
 
     def start(self):
         self.socket = socket.socket(socket.AF_BLUETOOTH, socket.SOCK_STREAM, socket.BTPROTO_RFCOMM)
-        self.socket.bind((self.program.information["mac"]["address"], self.port))
+        self.socket.bind((self.device.BD["address"], self.port))
         self.socket.listen(self.backlog)
         self._thread = threading.Thread(target=self.run)
         self._thread.start()

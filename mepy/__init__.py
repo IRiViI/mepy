@@ -20,7 +20,10 @@ from .http_client import HttpClient
 
 from .servers import HttpServer
 
+from .machine import Machine
+
 from .mepy import default_database_properties
+
 
 # from .mepy import signin
 # from .connections import *

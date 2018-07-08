@@ -66,7 +66,7 @@ if __name__ == '__main__':
         u4vl={
             "active":False
         })
-    print(program.settings)
+    
     # Add message handlers
     program.on_send_message('event', handle_send_event_message)
     program.on_send_message('throttle', handle_send_throttle_message)
