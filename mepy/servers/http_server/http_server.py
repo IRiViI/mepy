@@ -6,6 +6,7 @@ import threading
 import time
 import json
 import asyncio
+import os
 
 import mepy
 from mepy.servers.base_server import BaseServer
@@ -24,6 +25,7 @@ class HttpServer(BaseServer):
 
         self.type = "http"
         self.secure = kwargs.get("secure", False)
+        self.ssl_directory = kwargs.get("ssl_directory", None)
         self.connections = []
         self.program = None
 
@@ -49,7 +51,24 @@ class HttpServer(BaseServer):
             # print('port: ' + str(self.port))
             # print('security: ' + str(self.secure))
             app = __make_app()
-            app.listen(self.port)
+            files = os.listdir(self.ssl_directory)
+            pem_files_name = [s for s in files if ".pem" in s]
+            key_files_name = [s for s in files if ".key" in s]
+            if (len(pem_files_name) > 1 or len(key_files_name) > 1):
+                raise RuntimeError("Too many .pem or .key ssl files in ssl folder")
+            if (len(pem_files_name) < 1 or len(key_files_name) < 1):
+                raise RuntimeError("No correct .pem or .key files in ssl folder")
+
+            if self.secure is True:
+                ssl_options = {
+                    "certfile": '{}/{}'.format(self.ssl_directory,pem_files_name[0]),
+                    "keyfile": '{}/{}'.format(self.ssl_directory,key_files_name[0]),
+                }
+            else:
+                ssl_options = None
+
+            http_server = tornado.httpserver.HTTPServer(app, ssl_options=ssl_options)
+            http_server.listen(self.port)
             try:
                 # IOLoop.current().start()
                 # pass

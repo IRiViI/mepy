@@ -11,6 +11,11 @@ import time
 _id = '5b368d425d826811d48291cd'
 key = 'wDJxnQoLUAOhiEV'
 
+database_properties = {
+    'name':'default',
+   'address':'dev.machine-engine.com',
+   # 'address':'alpha.machine-engine.com',
+   'port':3000}
 
 def handle_project(project):
     """Process newly obtained project
@@ -67,7 +72,8 @@ if __name__ == '__main__':
     # Create program object
     program = mepy.Program(
         _id=_id,
-        key=key)
+        key=key,
+        database=database_properties)
 
     # Add message handlers
     program.on_send_message('throttle', handle_send_throttle_message)

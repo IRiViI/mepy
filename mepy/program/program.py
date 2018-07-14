@@ -51,15 +51,18 @@ class Program:
                 "http": {
                     "active": True,
                     "ws": True,
-                    "port": 5000
+                    "port": 5000,
+                    "secure": False
                 },
                 "bluetooth": {
                     "active": False,
                     "port": 1
                 },
                 "https": {
+                    "active": False,
                     "ws": False,
-                    "port": 5001
+                    "port": 5001,
+                    "secure": True
                 },
                 "socket":{
                     "active": False,
@@ -113,7 +116,8 @@ class Program:
             self._process_user(kwargs.get('user'))
 
         # Set default database
-        default_database = Database(**mepy.default_database_properties)
+        database_properties = kwargs.get('database',mepy.default_database_properties)
+        default_database = Database(**database_properties)
         self._process_database(default_database)
 
         #  Update network information
@@ -148,7 +152,7 @@ class Program:
         self.tags = kwargs.get('tags', self.tags)
 
         self.ssl_directory = kwargs.get("ssl_directory",
-            '{}/..'.format(os.path.dirname(os.path.abspath(__file__))))
+            '{}/'.format(os.path.dirname(os.path.abspath(__file__))+"/../.ssl"))
         # self.settings["init"] = kwargs.get('init', self.settings["init"])
         # self.settings["saveLocally"] = kwargs.get('saveLocally', self.settings["saveLocally"])
 
@@ -222,6 +226,7 @@ class Program:
         if 'http' in self.settings['servers']:
             properties = self.settings['servers']['http'].copy()
             properties["secure"] = False
+            properties["ssl_directory"]=self.ssl_directory
             http_server = HttpServer(**properties)
             http_server.set_program(self)
             http_server.init()
@@ -229,12 +234,14 @@ class Program:
             self.information["connectivity"]["http"]={
                 "host": False,
                 "client": False,
+                "secure": False,
                 "port": self.settings["servers"]["http"]["port"]
             }
             if properties['ws'] is True:
                 self.information["connectivity"]["ws"]={
                     "host": True,
                     "client": True,
+                    "secure": False,
                     "port": self.settings["servers"]["http"]["port"]
                 }
 
@@ -721,13 +728,15 @@ class Program:
 
     def update_network_information(self):
         network_string_list = ni.interfaces()
+        if 'lo' in network_string_list: network_string_list.remove('lo')
+        # network_string_list = ['lo', 'eno1', 'wlo1','wlan0','eth0']
         ips = []
         for network_string in network_string_list:
             try:
                 net = ni.ifaddresses(network_string)[ni.AF_INET][0]
                 net_address = net['addr']
                 self.information["network"][network_string] = {
-                    "address": address
+                    "address": net_address
                     }
             except:
                 pass

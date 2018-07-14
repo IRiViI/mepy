@@ -17,13 +17,22 @@ class OpenSSL:
         self.unit = kwargs.get("unit", None)
         self.name = kwargs.get("name", None)
         self.email = kwargs.get("email", None)
-
-        self.folder = kwargs.get("folder", ".ssl")
-        self.directory = kwargs.get("directory", "./")
+        self.directory = kwargs.get("directory", "./.ssl")
         self.key_name = kwargs.get("key","private")
         self.cert_name = kwargs.get("cert","private")
 
     def generate(self):
+
+        def check_if_already_exist():
+            # Check if the keys already exist
+            files = os.listdir(self.directory)
+            pem_files_name = [s for s in files if ".pem" in s]
+            key_files_name = [s for s in files if ".key" in s]
+            if (len(pem_files_name) > 1 or len(key_files_name) > 1):
+                raise RuntimeError("Too many .pem or .key ssl files in ssl folder")
+            if (len(pem_files_name) < 1 or len(key_files_name) < 1):
+                return False
+            return True
 
         def create_command_line(*args):
             return ' '.join(args)
@@ -42,10 +51,15 @@ class OpenSSL:
                 os.makedirs(path)
 
         # Path to ssl key folder
-        path = "{}/{}".format(self.directory, self.folder)
+        path = self.directory
 
         # Create folder if needed
         create_ssl_directory(path)
+
+        # Check if the keys are already made
+        if check_if_already_exist() is True:
+            print('already')
+            return False
 
         # Create the subject for the key
         subj = create_subject(
