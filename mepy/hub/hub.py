@@ -45,6 +45,9 @@ class Hub(MeClass):
     def add_hub_connection(self, hub_connection):
         self.hub_connections.append(hub_connection)
 
+    def remove_hub_connection(self, hub_connection):
+        self.hub_connections.remove(hub_connection)
+
     def on_message(self, message):
         pass
 

@@ -64,3 +64,6 @@ class HubConnection(BaseConnection):
             method='send',
             query=query), 
             connection=self)
+
+    def terminate(self):
+        self.hub.remove_hub_connection(self)

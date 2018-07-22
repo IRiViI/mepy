@@ -10,6 +10,7 @@ from mepy.connections import HubConnection
 from mepy.message import Message
 from mepy.me_class import MeClass
 from mepy.remote_program import RemoteProgram
+from mepy.remote_program import RemotePrograms
 
 import mepy
 
@@ -93,6 +94,10 @@ class Project(MeClass):
     #     else:
     #         ValueError("On call named '" + key + "' is not allowed")
 
+    def pre_remote_program_connection(self, remote_program):
+        # Verify if you want to connect with remote program
+        return True
+
     def _process_connection_request(self, connection_request):
         # programs involved in the new connection
         remote_program_objects = connection_request['programs']
@@ -101,6 +106,11 @@ class Project(MeClass):
         # Remove my program from list
         remote_programs = list(filter(
             lambda remote_program: remote_program._id != self.program._id, remote_programs))
+        # Ask for local connection permission
+        for remote_program in remote_programs:
+            out = self.pre_remote_program_connection(remote_program)
+            if out == False:
+                raise RuntimeError('Connection request denied')
         # Add remote program if it's a new one
         for remote_program in remote_programs:
             remote_program.connecting_start_time = time.time()
@@ -119,7 +129,7 @@ class Project(MeClass):
         # add remote programs to my program
         for remote_program in remote_programs:
             is_added = self.program.add_remote_program(remote_program)
-            remote_program.connected = True
+            # remote_program.connected = True
         # Return 
         return {}
 
@@ -306,7 +316,7 @@ class Project(MeClass):
         return remote_programs
 
     def get_remote_programs_by_tags(self, include, exclude=[]):
-        remote_programs = []
+        remote_programs = RemotePrograms([])
         # Check if there is an remote program connected to this program
         for remote_program in self.remote_programs:
             # Don't be such a narcissist

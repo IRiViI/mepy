@@ -157,6 +157,7 @@ class WebsocketHostConnection(BaseConnection):
 
     def terminate(self):
         self.running = False
+        self.ws.close()
         print("WebSocket closed")
    
 

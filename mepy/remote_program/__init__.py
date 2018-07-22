@@ -6,3 +6,4 @@ __author__ = """Hendrik Willem Vink"""
 __email__ = 'rckvnk@gmail.com'
 
 from .remote_program import RemoteProgram
+from .remote_programs import RemotePrograms

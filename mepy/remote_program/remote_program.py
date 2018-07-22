@@ -44,7 +44,6 @@ class RemoteProgram(MeClass):
 
         self.calls = {}
 
-        self.connected = False
         self.connecting_start_time = None
 
         def process_uv4l_server_system_call(message):
@@ -112,6 +111,10 @@ class RemoteProgram(MeClass):
 
         self.combine(**kwargs)
 
+    def connected(self):
+        # Check if program is connected with remote program
+        return self in self.program.remote_programs
+
     def ping(self):
         connection = self.connections[0]
         return connection.ping()
@@ -154,7 +157,7 @@ class RemoteProgram(MeClass):
         #     raise ValueError("property '" + query['property'] + "' is not recognized")
 
     def connect(self):
-        if self.connected is True:
+        if self.connected() is True:
             raise RuntimeWarning('already connected with program {}'.format(self.name))
             
         elif (self.connecting_start_time is None) is False:
@@ -481,14 +484,14 @@ class RemoteProgram(MeClass):
     def send_message(self, message, connection=None):
         message.receiver = {"_id":self._id, "type":"program"}
         message.sender = {"_id":self.program._id, "type":"program"}
-        if self.connected is False:
+        if self.connected() is False:
             try:
                 self.connect()
             except RuntimeWarning as warning:
                 print(warning)
             # Wait till connected or connecting type exceeded
             print('Connecting to program {}'.format(self.name))
-            while self.connected is False or time.time() - self.connecting_start_time < 5:
+            while self.connected() is False or time.time() - self.connecting_start_time < 5:
                 time.sleep(0.1)
         # Send message 
         self.channel(message, connection)
@@ -525,3 +528,19 @@ class RemoteProgram(MeClass):
 
     def terminate(self):
         pass
+
+    def disconnect(self):
+        # Close connections
+        for connection in self.connections:
+            # Remove connection
+            self.remove_connection(connection)
+        # Remove remote program from program
+        self.program.remove_remote_program(self)
+
+    def remove_connection(self, connection):
+        # Remove connection from list
+        self.connections.remove(connection)
+        # If this connection was used directly by the remote program 
+        if connection.remote == self:
+            # Terminate connection
+            connection.terminate()

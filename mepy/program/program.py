@@ -728,8 +728,8 @@ class Program:
 
     def update_network_information(self):
         network_string_list = ni.interfaces()
-        if 'lo' in network_string_list: network_string_list.remove('lo')
-        # network_string_list = ['lo', 'eno1', 'wlo1','wlan0','eth0']
+        # if 'lo' in network_string_list: network_string_list.remove('lo')
+        network_string_list = ['lo', 'eno1', 'wlo1','wlan0','eth0']
         ips = []
         for network_string in network_string_list:
             try:
@@ -793,6 +793,9 @@ class Program:
         self._on_remote_program(remote_program)
         # Return true
         return True
+
+    def remove_remote_program(self, remote_program):
+        self.remote_programs.remove(remote_program)
 
     def terminate(self):
         for project in self.projects:

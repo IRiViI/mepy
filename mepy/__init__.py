@@ -8,6 +8,7 @@ __version__ = '0.1.0'
 
 from .program import Program
 from .remote_program import RemoteProgram
+from .remote_program import RemotePrograms
 from .project import Project
 from .user import User
 from .hub import Hub

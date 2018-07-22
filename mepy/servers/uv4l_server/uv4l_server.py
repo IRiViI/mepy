@@ -26,11 +26,20 @@ class Uv4lServer(BaseServer):
 
     def _process_service_message(self, ws, string_message):
         json_message = json.loads(string_message)
+        print('-r--', json_message["what"])
         if "what" in json_message:
             what = json_message["what"]
-            print('--', what)
+            # print('--', what)
             logging.debug('uv4l_server(_process_service_message), what: {}'.format(what))
             if what == 'offer' and self._current_caller != None:
+                message = Message(
+                    body=json_message,
+                    endpoint='uv4lClient',
+                    method='send',
+                    query={"_systemRequest":True})
+                self._current_caller.send_message(message)
+                return
+            if what == 'iceCandidate' and self._current_caller != None:
                 message = Message(
                     body=json_message,
                     endpoint='uv4lClient',
@@ -115,6 +124,7 @@ class Uv4lServer(BaseServer):
                 print('data')
 
     def _send_to_service(self, data):
+        print('-s--', data)
         self.ws.send(data)
 
     def getInformation(self):
@@ -129,7 +139,6 @@ class Uv4lServer(BaseServer):
     def process_remote_program_message(self, remote_program, message):
         if "what" in message.body:
             what = message.body["what"]
-            print('-', what)
             logging.debug('uv4l_server(process_remote_program_message), what: {}'.format(what))
             if what == 'call':
                 # Start websocket connection with uv4l service

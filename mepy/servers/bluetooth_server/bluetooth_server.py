@@ -160,7 +160,8 @@ class BluetoothServer(BaseServer):
 
         print(message.body)
 
-    # def update_information(self):
+    def update_information(self):
+        pass
     #     port = 0
     #     for i in range(1,100):
     #         if (i not in self.active_ports and
