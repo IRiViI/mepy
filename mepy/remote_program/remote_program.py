@@ -252,28 +252,26 @@ class RemoteProgram(MeClass):
         # If the ping interval is on
         if self.ping_interval > 0:
             # Try to close the pinging of the current hightest connection
-            try :
-                if len(self.connections) > 0:
-                    previous_connection = self.connections[0]
-                    previous_connection.stop_pinging()
-            except: 
-                pass
+            self.stop_pinging()
             # Start pinging at the new connection
             connection.ping_interval = self.ping_interval
-            connection.start_pinging()
+            # connection.start_pinging()
         # Continue as normal
         return super().add_connection(connection)
+
+    def stop_pinging(self):
+        for connection in self.connections:
+            try:
+                connection.stop_pinging()
+            except:
+                pass
 
 
     def reset_pinging(self):
         # If the ping interval is on
         if self.ping_interval > 0:
             # Try to close the pinging of the current hightest connection
-            for connection in self.connections:
-                try:
-                    connection.stop_pinging()
-                except:
-                    print('pinging stopping failed for connection',connection)
+            self.stop_pinging
             # Start pinging at the new connection
             self.connections[0].ping_interval = self.ping_interval
             try:
@@ -482,6 +480,7 @@ class RemoteProgram(MeClass):
         self.send_message(response)
       
     def send_message(self, message, connection=None):
+        print('--mess', message.body)
         message.receiver = {"_id":self._id, "type":"program"}
         message.sender = {"_id":self.program._id, "type":"program"}
         if self.connected() is False:
@@ -527,9 +526,17 @@ class RemoteProgram(MeClass):
                 return response
 
     def terminate(self):
-        pass
+        # Remove remote program from program
+        self.program.remove_remote_program(self)
+        # Remove remote program from projects
+        for project in self.projects:
+            project.remove_remote_program(self)
+        # Remove all the connections
+        self.disconnect()
 
     def disconnect(self):
+        # Stop pinging
+        self.stop_pinging()
         # Close connections
         for connection in self.connections:
             # Remove connection
@@ -543,4 +550,14 @@ class RemoteProgram(MeClass):
         # If this connection was used directly by the remote program 
         if connection.remote == self:
             # Terminate connection
+            # try:
             connection.terminate()
+            # except:
+            #     pass
+        # Check if the program is still alive
+        if len(self.connections) > 0:
+            self.connections[0].ping_message()
+
+        # This is a temarary hack
+        if len(self.connections) < 2:
+            self.terminate()

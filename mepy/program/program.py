@@ -16,6 +16,7 @@ from mepy.connections import WebsocketClientConnection
 from mepy.servers.bluetooth_server import BluetoothServer
 from mepy.servers.websocket_server import WebsocketServer
 from mepy.servers.uv4l_server import Uv4lServer
+from mepy.remote_program import RemotePrograms
 from ..hardware import BluetoothDevice
 from ..others import others
 
@@ -331,9 +332,10 @@ class Program:
                 call_method = call_endpoint[call_method_key]
                 call = call_method['call']
                 remote_program.on(call_method_key, call_endpoint_key, call)
-
+        print('b')
         # Trigger the on remote program calls
         for call_structure in self._on_remote_program_call_structures:
+            print('c')
             call_structure['call'](remote_program)
 
     def on_remote_program(self, call):
@@ -780,6 +782,56 @@ class Program:
                 return remote_program
         return None
 
+
+    def get_remote_programs_by_name(self, name):
+        remote_programs = RemotePrograms([])
+        # Check if there is an remote program connected to this program
+        for remote_program in self.remote_programs:
+            if (remote_program.name 
+                and remote_program.name == name
+                and self.is_me(remote_program) is False):
+                remote_programs.append(remote_program)
+        return remote_programs
+
+    def get_remote_programs_by_type(self, itype):
+        remote_programs = RemotePrograms([])
+        # Check if there is an remote program connected to this program
+        for remote_program in self.remote_programs:
+            if (remote_program.type 
+                and remote_program.type == itype
+                and self.is_me(remote_program) is False):
+                remote_programs.append(remote_program)
+        return remote_programs
+
+    def get_remote_programs_by_tags(self, include, exclude=[]):
+        remote_programs = RemotePrograms([])
+        # Check if there is an remote program connected to this program
+        for remote_program in self.remote_programs:
+            # Don't be such a narcissist
+            if self.is_me(remote_program) is True:
+                continue
+            # Check if it matches both desired and not the un desired tags
+            matching = True
+            # for all the desired tags
+            for tag in include:
+                if tag not in remote_program.tags:
+                    matching = False
+                    break
+            # So far so good?
+            if matching is False:
+                continue
+            # Check all the undesired tags
+            for tag in exclude:
+                if tag in remote_program.tags:
+                    matching = False
+                    break
+            # So far so good?
+            if matching is False:
+                continue
+            # Add the program
+            remote_programs.append(remote_program)
+        return remote_programs
+
     def add_remote_program(self, remote_program, **kwargs):
         # Check if remote_program is an instance of RemoteProgram class
         if not isinstance(remote_program, RemoteProgram):
@@ -795,7 +847,10 @@ class Program:
         return True
 
     def remove_remote_program(self, remote_program):
-        self.remote_programs.remove(remote_program)
+        try:
+            self.remote_programs.remove(remote_program)
+        except:
+            pass
 
     def terminate(self):
         for project in self.projects:

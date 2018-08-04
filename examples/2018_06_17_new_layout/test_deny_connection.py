@@ -20,7 +20,7 @@ def handle_project(project):
     Arguments:
         project {Project} -- project to be handled
     """
-
+    print('a')
     def pre_remote_program_connection(remote_program):
         # Only accept one remote program at a time
         connected_remote_controllers = project.get_remote_programs_by_tags(['controller']).connected()

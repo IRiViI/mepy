@@ -87,7 +87,7 @@ class WebsocketClientConnection(BaseConnection):
 
     def _ping_loop(self):
         asyncio.set_event_loop(self.event_loop)
-        while self.ping_interval != 0:
+        while self.ping_interval != 0 and self.remote.connected():
             # Do not ping if there is still a ping going on and it has been
             # shorten than one second the ping has been initiated
             if self._ping_active == True and self.ping() < 1:
@@ -100,6 +100,7 @@ class WebsocketClientConnection(BaseConnection):
                 # self.ping_times[2] = time.time()
                 self._ping_active = True
             time.sleep(self.ping_interval)
+
         self._pingThread = None
 
     def start_pinging(self):
@@ -304,6 +305,6 @@ class WebsocketClientConnection(BaseConnection):
             #     logging.warning('websocket_client_connection(channel), could not send message "{}" '.format(json_object))
 
     def _on_close(self, ws):
-        print('On close is not defined')
+        self.remote.remove_connection(self)
 
 

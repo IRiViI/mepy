@@ -9,8 +9,8 @@ import math
 
 
 # Program settings
-_id = '5b03da4d308fcd25b86e6a6b'
-key = 'aBUSQ7gTUA8bNCH'
+_id = '5b3b7e7aa9247b4ce6394eb4'
+key = '9beutonQPDRFSle'
 
 servers = {
             "http": {
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     program.start()
 
     # myProject
-    myProject = program.get_project_by_name('myProject')
+    myProject = program.get_project_by_name('Default')
 
     status = {
         'health': 100,
@@ -78,9 +78,9 @@ if __name__ == '__main__':
     # Keep it on
     try:
         while True:
-            player_programs = myProject.get_remote_programs_by_tags(['machine'])
+            # player_programs = 
             # print(player_programs)
-            for remote_program in player_programs:
+            for remote_program in myProject.get_remote_programs_by_tags(['script']):
                 # try:
                 remote_program.send('move', 'boe!')
                 #     # remote_program.connect()

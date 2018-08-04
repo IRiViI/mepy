@@ -39,7 +39,7 @@ class WebsocketHostConnection(BaseConnection):
 
         # self.certification = kwargs.get('certifciation', None)
         # self.ws.on_message = lambda ws, message: self._process_message(message)
-        # self.ws.on_close = lambda ws: self.on_close()
+        self.ws.on_close = lambda : self._on_close()
 
     def _process_message(self, string_message):
         def _convert_message(string_message):
@@ -57,7 +57,7 @@ class WebsocketHostConnection(BaseConnection):
 
     def _ping_loop(self):
         asyncio.set_event_loop(self.event_loop)
-        while self.ping_interval != 0:
+        while self.ping_interval != 0 and self.remote.connected():
             # Do not ping if there is still a ping going on and it has been
             # shorten than one second the ping has been initiated
             if self._ping_active == True and self.ping() < 1:
@@ -184,6 +184,8 @@ class WebsocketHostConnection(BaseConnection):
     def _remove_message(self, message):
         self._messages.remove(message)
 
+    def _on_close(self):
+        self.remote.remove_connection(self)
     
 
     # def _on_string_message(self, ws, string_message):

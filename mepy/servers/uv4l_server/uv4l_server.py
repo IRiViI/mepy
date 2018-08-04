@@ -56,7 +56,7 @@ class Uv4lServer(BaseServer):
         else: 
             logging.warning('uv4l_server(_process_service_message), Could not process message')
 
-    def _on_close_sevice_connection(self):
+    def _on_close_sevice_connection(self, something):
         print('service connection closed')
 
     def init(self):

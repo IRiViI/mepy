@@ -38,6 +38,10 @@ class HubConnection(BaseConnection):
     def on_ping(self, call):
         pass
 
+    def ping_message(self):
+        self.ping_times = [time.time(), None, None]
+        self.send('ping', [self.ping_times[0]], {"_systemRequest": True})
+
     def ping(self):
         if self.ping_times[2] is None:
             return time.time() - self.ping_times[0]

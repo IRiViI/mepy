@@ -296,7 +296,7 @@ class Project(MeClass):
         return None
 
     def get_remote_programs_by_name(self, name):
-        remote_programs = []
+        remote_programs = RemotePrograms([])
         # Check if there is an remote program connected to this program
         for remote_program in self.remote_programs:
             if (remote_program.name 
@@ -306,7 +306,7 @@ class Project(MeClass):
         return remote_programs
 
     def get_remote_programs_by_type(self, itype):
-        remote_programs = []
+        remote_programs = RemotePrograms([])
         # Check if there is an remote program connected to this program
         for remote_program in self.remote_programs:
             if (remote_program.type 
@@ -362,7 +362,10 @@ class Project(MeClass):
         return True
 
     def remove_remote_program(self, remote_program):
-        print('remove remote programs not yet implemented')
+        try:
+            self.remote_programs.remove(remote_program)
+        except:
+            pass
 
     def remote_program_mapping(self, remote_program_object):
         remote_program = self.get_remote_program_by_id(remote_program_object['_id'])
@@ -416,9 +419,19 @@ class Project(MeClass):
         self.on_message(message)
         if (message.method == 'response'):
             return self._process_response(message)
-        if (message.endpoint == 'connectionRequest'):
+        elif (message.endpoint == 'connectionRequest'):
             self._process_connection_request(message.body)
             self.respond(message._id, None, {'message': 'succesful'})
+            return
+        elif (message.endpoint == 'onlineProgram'):
+            properties = message.body
+            remote_program = RemoteProgram(properties)
+            self.add_remote_program(remote_program)
+            return
+        elif (message.endpoint == 'offlineProgram'):
+            # properties = message.body
+            # remote_program = RemoteProgram(properties)
+            # self.add_remote_program(remote_program)
             return
         print('A message from the project? that is weird')
 

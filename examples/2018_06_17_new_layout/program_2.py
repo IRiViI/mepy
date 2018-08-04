@@ -9,8 +9,8 @@ import math
 
 
 # Program settings
-_id = '5b03e31a308fcd25b86e6a7e'
-key = '3FH6bL86cI4z0gp'
+_id = '5b3b7e77a9247b4ce6394eb1'
+key = 'U3L9iPOTblU8iQx'
 
 servers = {
             "http": {
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     program = mepy.Program(
         _id=_id,
         key=key,
-        servers=servers)
+        http=servers["http"])
 
     # Handle newly connected programs
     program.on_remote_program(lambda program: print('You are connected with program {}'.format(program.name)))
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     program.start()
 
     # myProject
-    myProject = program.get_project_by_name('myProject')
+    myProject = program.get_project_by_name('Default')
 
     status = {
         'health': 100,
@@ -78,17 +78,20 @@ if __name__ == '__main__':
     # Keep it on
     try:
         while True:
-            player_programs = myProject.get_remote_programs_by_tags(['machine'])
+            # player_programs = 
             # # Update status to other players
-            for remote_program in player_programs:
-                status = remote_program.information['status']
-                team = status['team']
+            for remote_program in myProject.get_remote_programs_by_tags(['script']):
+                # status = remote_program.information['status']
+                # team = status['team']
                 # try:
                 remote_program.send('move', 'boe!')
                 # except RuntimeWarning as warning:
                 #     print(warning)
             # Wait for 1 second
             time.sleep(1)
+
+            for remote_program in myProject.remote_programs:
+                print(remote_program.connections)
 
             # if hit is True:
 
