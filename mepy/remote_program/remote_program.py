@@ -480,7 +480,6 @@ class RemoteProgram(MeClass):
         self.send_message(response)
       
     def send_message(self, message, connection=None):
-        print('--mess', message.body)
         message.receiver = {"_id":self._id, "type":"program"}
         message.sender = {"_id":self.program._id, "type":"program"}
         if self.connected() is False:
@@ -489,7 +488,7 @@ class RemoteProgram(MeClass):
             except RuntimeWarning as warning:
                 print(warning)
             # Wait till connected or connecting type exceeded
-            print('Connecting to program {}'.format(self.name))
+            # print('Connecting to program {}'.format(self.name))
             while self.connected() is False or time.time() - self.connecting_start_time < 5:
                 time.sleep(0.1)
         # Send message 

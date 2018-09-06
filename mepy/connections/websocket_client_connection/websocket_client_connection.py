@@ -161,6 +161,8 @@ class WebsocketClientConnection(BaseConnection):
         self.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
 
     def _process_message(self, ws, string_message):
+        # print('--', string_message)
+        # print(self.remote.program.remote_programs)
         if not self.remote:
             print('NO REMOTE SET')
         def _convert_message(string_message):
@@ -180,7 +182,6 @@ class WebsocketClientConnection(BaseConnection):
         #             sender={"type":"program","_id":self.remote.program._id})
         #         self.channel(pongMessage)
         # else :
-        
         self.remote.redirect_message(message)
         
     # def _process_message(self, ws, string_message):

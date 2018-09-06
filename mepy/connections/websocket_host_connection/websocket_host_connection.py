@@ -116,7 +116,13 @@ class WebsocketHostConnection(BaseConnection):
                     # Remove message from send messages list
                     self._remove_message(message)
                 except:
-                    print('ERROR: Ow no... websocket_host_connection, _run')
+                    time.sleep(0.1)
+                    try:
+                        self.ws.write_message(json_object)
+                    except:
+                        print('ERROR: Ow no... websocket_host_connection, _run')
+                    # Remove message from send messages list
+                    self._remove_message(message)
             time.sleep(self.period)
 
         # # While the websocket is active

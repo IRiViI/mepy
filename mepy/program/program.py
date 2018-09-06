@@ -705,8 +705,11 @@ class Program:
     def get_connectivity_information(self):
         if ("bluetooth" in self.information["connectivity"] and
             self.information["connectivity"]["bluetooth"]["host"] is True):
+            print('aa')
             update = self.servers["bluetooth"].update_information()
+            print('aab')
             self.information["connectivity"]["bluetooth"].update(update)
+            print('aac')
 
         return self.information["connectivity"]
         # information = []
