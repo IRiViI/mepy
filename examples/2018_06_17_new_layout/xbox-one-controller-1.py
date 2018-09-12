@@ -76,7 +76,8 @@ def event_to_data(event):
     return data
 
 def handle_send_event_message(message):
-    print(message.body)
+    pass
+    # print(message.body)
 
 prev_datas = collections.deque([
     [None, None, None, None, None,0],
@@ -140,9 +141,14 @@ def send_data(data):
     prev_datas.appendleft(new_data_entry)
     prev_datas.pop()
 
+    # print(data)
+
     # Send data to the other program
     for remote_program in myProject.get_remote_programs_by_tags(['robot']):
         remote_program.send('input', data)
+
+def handle_remote_program(remote_program):
+    print('cheese', remote_program.name)
 
 if __name__ == '__main__':
 
@@ -170,6 +176,8 @@ if __name__ == '__main__':
     program.start()
 
     myProject = program.get_project_by_name('Default')
+
+    myProject.on_remote_program(handle_remote_program)
 
     print('Hello {}'.format(program.name))
 

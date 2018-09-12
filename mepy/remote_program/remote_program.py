@@ -507,7 +507,11 @@ class RemoteProgram(MeClass):
 
     def _await_response(self, message):
         # Create a asyncio event
-        loop = asyncio.get_event_loop()
+        try:
+            loop = asyncio.get_event_loop()
+        except:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         event = asyncio.Event()
         # add message to queue list
         self.queue.append([message, loop, event])
