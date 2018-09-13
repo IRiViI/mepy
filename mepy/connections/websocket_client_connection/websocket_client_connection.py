@@ -136,11 +136,11 @@ class WebsocketClientConnection(BaseConnection):
             # Connect using the secure websocket server
             prefix + '://' + self.address + ':' + str(self.port),
             # On message
-            on_message=self._process_message,
+            on_message=lambda _ws, _mess: self._process_message(_ws, _mess),
             # On error
-            on_error=self.on_error,
+            on_error=lambda _ws, _error: self.on_error(_ws, _error),
             # On close
-            on_close=self._on_close,
+            on_close=lambda _ws: self._on_close(_ws),
             # On open
             on_open=onopen)
         # NOTE: An upgrade for another day:
