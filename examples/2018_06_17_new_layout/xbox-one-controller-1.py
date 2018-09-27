@@ -11,7 +11,7 @@ import collections
 # Program settings
 _id = '5b3b7e7aa9247b4ce6394eb4'
 key = '9beutonQPDRFSle'
-controller_index = 0
+# controller_index = 0
 delta_input_time = 0.2
 
 servers = {
@@ -33,9 +33,11 @@ joystick_names = []
 for i in range(0, pygame.joystick.get_count()):
     joystick_names.append(pygame.joystick.Joystick(i).get_name())
 
-my_joystick = pygame.joystick.Joystick(controller_index)
-my_joystick.init()
 
+for controller_index, joystick in enumerate(joystick_names):
+    my_joystick = pygame.joystick.Joystick(controller_index)
+    my_joystick.init()
+    print(controller_index)
 # try:
 #     my_joystick = pygame.joystick.Joystick(1)
 #     my_joystick.init()
@@ -92,6 +94,7 @@ prev_datas = collections.deque([
 # counter = 0
 
 def send_data(data):
+    print(data)
     # Get current timestamp
     current_time = time.time()
 
@@ -143,9 +146,13 @@ def send_data(data):
 
     # print(data)
 
+    print(myProject.get_remote_programs_by_tags(['robot']))
     # Send data to the other program
-    for remote_program in myProject.get_remote_programs_by_tags(['robot']):
-        remote_program.send('input', data)
+    remote_programs = myProject.get_remote_programs_by_tags(['robot'])
+    if len(remote_programs) > 1:
+        remote_programs[data[0]].send('input', data)
+    else:
+        remote_programs[0].send('input', data)
 
 def handle_remote_program(remote_program):
     print('cheese', remote_program.name)
