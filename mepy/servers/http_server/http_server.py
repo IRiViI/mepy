@@ -176,12 +176,12 @@ class Connection(tornado.web.RequestHandler):
         self.http_server = http_server
 
 
-    @tornado.web.asynchronous
+    @asyncio.coroutine
     def options(self):
         self.set_status(204)
         self.finish()
 
-    @tornado.web.asynchronous
+    @asyncio.coroutine
     def post(self):
         # Get body
         body = tornado.escape.json_decode(self.request.body)
@@ -226,12 +226,12 @@ class MessageRoute(tornado.web.RequestHandler):
     def initialize(self, http_server):
         self.http_server = http_server
 
-    @tornado.web.asynchronous
+    @asyncio.coroutine
     def options(self):
         self.set_status(204)
         self.finish()
 
-    @tornado.web.asynchronous
+    @asyncio.coroutine
     def post(self):
 
         # Get the security code
@@ -301,7 +301,7 @@ class VideoFeed(tornado.web.RequestHandler):
         self.http_server = http_server
         self.camera = camera
 
-    @tornado.web.asynchronous
+    @asyncio.coroutine
     @tornado.gen.coroutine
     def get(self):
 

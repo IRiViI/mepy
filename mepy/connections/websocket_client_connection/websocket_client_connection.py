@@ -291,7 +291,7 @@ class WebsocketClientConnection(BaseConnection):
             self.ws.send(json_object)
         except Exception as error: 
             print('waaaaaait a minute.... or second at least')
-            time.sleep(1)
+            time.sleep(3)
             try:
                 self.ws.send(json_object)
             except Exception as error: 
@@ -300,6 +300,9 @@ class WebsocketClientConnection(BaseConnection):
                 print(self.secure)
                 print(self.address)
                 print(self.port)
+                print('rem', self.remote)
+                # print('terminating...')
+                # self.remote.terminate()
             # time.sleep(0.1)
             # self.ws.send(json_object)
             # except:

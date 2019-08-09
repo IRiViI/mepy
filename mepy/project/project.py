@@ -98,7 +98,8 @@ class Project(MeClass):
         # Verify if you want to connect with remote program
         return True
 
-    def _process_connection_request(self, connection_request):
+    def _process_connection_request(self, message):
+        connection_request = message.body
         # programs involved in the new connection
         remote_program_objects = connection_request['programs']
         # Map programs to remote program instances
@@ -115,6 +116,9 @@ class Project(MeClass):
         for remote_program in remote_programs:
             remote_program.connecting_start_time = time.time()
             self.add_remote_program(remote_program, connect=True)
+
+        self.respond(message._id, None, {'message': 'succesful'})
+        
         # Add hub connection
         hub_connection_added = False
         for connection in self.connections:
@@ -420,8 +424,7 @@ class Project(MeClass):
         if (message.method == 'response'):
             return self._process_response(message)
         elif (message.endpoint == 'connectionRequest'):
-            self._process_connection_request(message.body)
-            self.respond(message._id, None, {'message': 'succesful'})
+            self._process_connection_request(message)
             return
         elif (message.endpoint == 'onlineProgram'):
             properties = message.body
@@ -429,7 +432,10 @@ class Project(MeClass):
             self.add_remote_program(remote_program)
             return
         elif (message.endpoint == 'offlineProgram'):
-            # properties = message.body
+            properties = message.body
+            remote_program = self.get_remote_program_by_id(properties["_id"])
+            print('program offline', remote_program.name)
+            # remote_program.terminate()
             # remote_program = RemoteProgram(properties)
             # self.add_remote_program(remote_program)
             return

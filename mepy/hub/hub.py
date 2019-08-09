@@ -103,10 +103,12 @@ class Hub(MeClass):
             sender = self.program.get_remote_program_by_id(message.sender["_id"])
             hub_connection = self.get_hub_connection_by_remote(sender)
             message.connection = hub_connection
+            message.remote = sender
         elif message.sender["type"] == 'project':
             sender = self.program.get_project_by_id(message.sender["_id"])
             hub_connection = self.get_hub_connection_by_remote(sender)
             message.connection = hub_connection
+            message.remote = sender
         if not sender:
             raise RuntimeError('Sender ' + sender["type"] + '-' + sender["_id"] + ' of message could not be found')
         # Continue

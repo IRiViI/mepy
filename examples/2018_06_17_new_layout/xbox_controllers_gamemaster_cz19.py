@@ -8,6 +8,12 @@ import time
 import pygame
 import collections
 
+import tornado.ioloop
+import tornado.web
+import json
+import threading
+import asyncio
+
 # Program settings
 _id = '5b3b7e7aa9247b4ce6394eb4'
 key = '9beutonQPDRFSle'
@@ -120,11 +126,11 @@ def send_data(data):
         if (data[2] != None and prev_data[2] != None and
             isinstance(data[2], (int, float)) and
             isinstance(prev_data[2], (int, float)) and
-            abs(data[2] - prev_data[2]) > 0.3):
+            abs(data[2] - prev_data[2]) > 0.2):
             continue
 
         # If the value is too small to skip
-        if (data[2] != None and isinstance(data[2], (int, float)) and abs(data[2]) == 0):
+        if (data[2] != None and isinstance(data[2], (int, float)) and abs(data[2]) < 0.1):
             continue
 
         # Check if the new data input is similiar to previous data input
@@ -146,7 +152,7 @@ def send_data(data):
 
     # print(data)
 
-    print(myProject.get_remote_programs_by_tags(['robot']))
+    # print(myProject.get_remote_programs_by_tags(['robot']))
     # Send data to the other program
     remote_programs = myProject.get_remote_programs_by_tags(['robot'])
     if len(remote_programs) > 1:
@@ -154,10 +160,114 @@ def send_data(data):
     else:
         remote_programs[0].send('input', data)
 
+    # Reset game if L1 and L2 are pressed
+    if data[4] == 4:
+        if data[1] == 10:
+            game_status["L1"]=True
+        else:
+            game_status["L1"]=False
+    elif data[4] == 5:
+        if data[1] == 10:
+            game_status["R1"]=True
+        else:
+            game_status["R1"]=False
+    if game_status["R1"] and game_status["L1"]:
+        reset_game()
+
+def is_game_over():
+    return time.time() - game_status["start_time"] > game_status["duration"] > 0
+
 def handle_remote_program(remote_program):
     print('cheese', remote_program.name)
+    update_robots_game_status()
+
+def handle_send_info_message(message):
+    # Update last update time
+    game_status["last_update_time"] = time.time()
+    # Get message body
+    body = message.body
+    # On dead update
+    if body['what'] == "dead":
+        if not is_game_over():
+            game_status["scores"][int(body["player"]-1)]+=1
+        else:
+            print("game is over")
+    # Send new game status robots
+    update_robots_game_status()
+
+def reset_robots():
+
+    remote_programs = myProject.get_remote_programs_by_tags(['robot'])
+    for remote_program in remote_programs:
+        remote_program.send('reset', 1)
+
+
+def update_robots_game_status():
+
+    remote_programs = myProject.get_remote_programs_by_tags(['robot'])
+    for remote_program in remote_programs:
+        remote_program.send('game_status', game_status)
+    print(game_status)
+
+
+game_status = {}
+
+def reset_game():
+
+    new_game_status = {
+        "last_update_time":0,
+        "start_time":time.time(),
+        "duration":4*60,
+        "scores":[0,0,0,0],
+        "L1":False,
+        "R1":False,
+    }
+    for game_status_key in new_game_status:
+        game_status[game_status_key] = new_game_status[game_status_key]
+
+    reset_robots()
+    update_robots_game_status()
+
+
+class MainHandler(tornado.web.RequestHandler):
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header('Access-Control-Allow-Methods', "GET, POST, OPTIONS")
+        self.set_header('Access-Control-Allow-Headers', "Content-Type, Depth, User-Agent, X-File-Size, X-Requested-With, X-Requested-By, If-Modified-Since, X-File-Name, Cache-Control")
+
+    def get(self):
+        current_time = time.time()
+        game_status["time"]=current_time,
+        game_status_json = json.dumps(game_status)
+        self.write(game_status_json)
+
+    def options(self):
+        # self.set_status(204)
+        self.finish()
+        # self.set_status(204)
+        # self.finish()
+
+def make_app():
+    return tornado.web.Application([
+        (r"/", MainHandler),
+    ])
+
+def start_server():
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    app = make_app()
+    http_server = tornado.httpserver.HTTPServer(app)
+    http_server.listen(8889)
+    try:
+        tornado.ioloop.IOLoop.current().start()
+    except:
+        print("Tornado http loop already running?")
+
 
 if __name__ == '__main__':
+
+    thread = threading.Thread(target=start_server, args=())
+    thread.deamon = True
+    thread.start()
 
     # Create program object
     program = mepy.Program(
@@ -171,6 +281,7 @@ if __name__ == '__main__':
     
     # Add message handlers
     program.on_send_message('input', handle_send_event_message)
+    program.on_send_message('info', handle_send_info_message)
     # program.on_send_message('throttle', handle_send_throttle_message)
 
     # # Handle newly connected programs
@@ -187,6 +298,8 @@ if __name__ == '__main__':
     myProject.on_remote_program(handle_remote_program)
 
     print('Hello {}'.format(program.name))
+
+    reset_game()
 
     # Keep it on
     done = False

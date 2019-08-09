@@ -176,12 +176,16 @@ class RemoteProgram(MeClass):
                 { "_id": self._id } 
             ]
         }
+        print('1')
         # Create a hub connection via a project
-        self.projects[0].post('connections', body)
+        out = self.projects[0].post('connections', body)
+        print('2')
         # Update program information
         self.update_information()
+        print('3')
         # Update connections
         self.update_connections()
+        print('4')
 
     def update_information(self):
         information = self.get('information', {"_systemRequest": True})

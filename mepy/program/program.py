@@ -23,6 +23,7 @@ from ..others import others
 class Program:
 
     def __init__(self, *args, **kwargs):
+
         # Default values
         self._id = None
         self.name = None
@@ -332,10 +333,8 @@ class Program:
                 call_method = call_endpoint[call_method_key]
                 call = call_method['call']
                 remote_program.on(call_method_key, call_endpoint_key, call)
-        print('b')
         # Trigger the on remote program calls
         for call_structure in self._on_remote_program_call_structures:
-            print('c')
             call_structure['call'](remote_program)
 
     def on_remote_program(self, call):
@@ -614,12 +613,9 @@ class Program:
         # Update Hubs
         if len(self.hubs) > 0:
             self.update_hubs()
-
-
         # Connect to hubs
         if len(self.hubs) > 0:
             self.connect_to_hubs()
-
 
         #  Connect to projects
         if len(self.projects) > 0:
